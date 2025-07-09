@@ -1,6 +1,0 @@
-{
-  "name": "LetsBonkGang Generator",
-  "description": "An application that uses Google's Gemini and Imagen models to turn any image into an anthropomorphic cartoon dog character holding a baseball bat.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}
