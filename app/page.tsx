@@ -15,6 +15,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string>('og_bonkgang');
   const [stats, setStats] = useState<StyleStats | null>(null);
+  const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -41,6 +42,7 @@ export default function Home() {
         return;
     };
 
+    setIsOutputVisible(true);
     setIsLoading(true);
     setError(null);
     setGenerationResult(null);
@@ -74,17 +76,24 @@ export default function Home() {
           isLoading={isLoading}
         />
         <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          <PromptInput
-            onGenerate={handleGenerate}
-            isLoading={isLoading}
-            error={error}
-            inputImage={inputImage}
-            setInputImage={handleSetInputImage}
-          />
-          <ImageDisplay
-            artworkUrl={generationResult?.artworkUrl ?? null}
-            isLoading={isLoading}
-          />
+          <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
+              <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
+                <PromptInput
+                  onGenerate={handleGenerate}
+                  isLoading={isLoading}
+                  error={error}
+                  inputImage={inputImage}
+                  setInputImage={handleSetInputImage}
+                />
+              </div>
+          </div>
+
+          {isOutputVisible && (
+            <ImageDisplay
+              artworkUrl={generationResult?.artworkUrl ?? null}
+              isLoading={isLoading}
+            />
+          )}
         </main>
         <StatsDisplay stats={stats} />
         <footer className="mt-12 text-center text-xs text-gray-400">

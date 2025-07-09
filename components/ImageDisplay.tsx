@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -29,7 +28,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ artworkUrl, isLoading }) =>
   }, [isLoading, artworkUrl]);
 
   return (
-    <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
+    <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full animate-fadeInUp">
       <h2 className="text-xl text-center text-amber-400 uppercase">Gang Member Image</h2>
       <div className="w-full aspect-square bg-zinc-950 border-2 border-amber-400 rounded-lg flex items-center justify-center overflow-hidden p-2">
         {isLoading && <Loader />}
