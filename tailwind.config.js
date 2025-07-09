@@ -1,3 +1,4 @@
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -7,11 +8,6 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        'pokemon-yellow': '#ffcb05',
-        'pokemon-blue': '#2a75bb',
-        'card-b-gold': '#c7a008',
-      }
     },
   },
   plugins: [],

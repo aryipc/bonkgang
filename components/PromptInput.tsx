@@ -4,15 +4,20 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 interface PromptInputProps {
+  onAnalyze: () => void;
   onGenerate: () => void;
-  isLoading: boolean;
+  isAnalyzing: boolean;
+  isGenerating: boolean;
   error: string | null;
   inputImage: File | null;
   setInputImage: (file: File | null) => void;
+  generatedPrompt: string | null;
+  setGeneratedPrompt: (prompt: string) => void;
 }
 
-const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error, inputImage, setInputImage }) => {
+const PromptInput: React.FC<PromptInputProps> = ({ onAnalyze, onGenerate, isAnalyzing, isGenerating, error, inputImage, setInputImage, generatedPrompt, setGeneratedPrompt }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const isLoading = isAnalyzing || isGenerating;
 
   useEffect(() => {
     if (inputImage) {
@@ -46,6 +51,21 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
     event.stopPropagation();
   };
 
+  const handleButtonClick = () => {
+    if (generatedPrompt !== null) {
+        onGenerate();
+    } else {
+        onAnalyze();
+    }
+  };
+
+  const getButtonText = () => {
+      if (isAnalyzing) return 'ANALYZING...';
+      if (isGenerating) return 'GENERATING...';
+      if (generatedPrompt !== null) return 'GENERATE';
+      return 'ANALYZE IMAGE';
+  }
+
   return (
     <div className="w-full p-4 bg-[#2c2c54] border-2 border-purple-500 rounded-lg shadow-lg flex flex-col gap-4 h-full">
       <h2 className="text-xl text-center text-yellow-300">Input</h2>
@@ -63,17 +83,32 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-xs sm:text-sm">Drop an image here or click to upload</p>
+            <p className="text-xs sm:text-sm">Drop an image here or click to get started</p>
           </div>
         )}
       </label>
 
+      {generatedPrompt !== null && (
+        <div className="flex flex-col gap-2">
+            <label htmlFor="prompt-textarea" className="text-yellow-300 text-sm">Generated Prompt (edit if you like):</label>
+            <textarea
+                id="prompt-textarea"
+                value={generatedPrompt}
+                onChange={(e) => setGeneratedPrompt(e.target.value)}
+                className="w-full p-2 bg-[#1a1a2e] border border-cyan-400 rounded-md text-white text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none transition-shadow"
+                rows={4}
+                disabled={isLoading}
+                aria-label="Generated Prompt"
+            />
+        </div>
+      )}
+
       <button
-        onClick={onGenerate}
+        onClick={handleButtonClick}
         disabled={isLoading || !inputImage}
         className="w-full mt-auto px-4 py-3 bg-pink-600 text-white font-bold rounded-md transition-all duration-200 ease-in-out enabled:hover:bg-pink-700 enabled:active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
       >
-        {isLoading ? 'GENERATING...' : 'GENERATE'}
+        {getButtonText()}
       </button>
       {error && (
         <p className="mt-2 text-center text-red-400 text-xs sm:text-sm" role="alert">

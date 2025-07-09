@@ -1,9 +1,10 @@
+
 import React from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "Pokémon Card Generator",
-  description: "An application that uses Google's Gemini and Imagen models to turn any image into a custom Pokémon card. The AI analyzes your image to create a unique name, attacks, and description.",
+  title: "LetsBonkGang Generator",
+  description: "An application that uses Google's Gemini and Imagen models to turn any image into a unique, cartoon-style Bonk Gang dog character holding a baseball bat.",
 };
 
 export default function RootLayout({
