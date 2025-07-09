@@ -3,9 +3,9 @@ import React from 'react';
 
 const Loader: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center text-cyan-300">
+    <div className="flex flex-col items-center justify-center text-amber-400">
         <svg
-            className="animate-spin h-12 w-12 text-yellow-300"
+            className="animate-spin h-12 w-12 text-amber-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

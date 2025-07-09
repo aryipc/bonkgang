@@ -18,7 +18,7 @@ interface StyleSelectorProps {
 const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelectedStyle, isLoading }) => {
     return (
         <div className="w-full max-w-lg flex flex-col items-center gap-3 my-6" role="radiogroup" aria-labelledby="style-label">
-            <h2 id="style-label" className="text-xl text-center text-yellow-300">Choose a Style</h2>
+            <h2 id="style-label" className="text-xl text-center text-amber-400">Choose a Style</h2>
             <div className="grid grid-cols-3 gap-4 w-full">
                 {styles.map(style => (
                     <button
@@ -27,11 +27,11 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelecte
                         aria-checked={selectedStyle === style.id}
                         onClick={() => setSelectedStyle(style.id)}
                         disabled={isLoading}
-                        className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1a1a2e] focus:ring-pink-500 ${
+                        className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed ${
                             selectedStyle === style.id 
-                                ? 'bg-cyan-500 border-cyan-300 text-white font-bold shadow-lg shadow-cyan-500/50'
-                                : 'bg-[#2c2c54] border-purple-500 text-cyan-300 hover:bg-purple-800'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                ? 'bg-amber-400 border-black text-black font-bold shadow-[3px_3px_0px_#000]'
+                                : 'bg-zinc-800 border-zinc-700 text-gray-300 hover:bg-zinc-700 hover:border-zinc-600 active:scale-95'
+                        }`}
                     >
                         {style.name}
                     </button>

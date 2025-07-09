@@ -51,13 +51,13 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
   }
 
   return (
-    <div className="w-full p-4 bg-[#2c2c54] border-2 border-purple-500 rounded-lg shadow-lg flex flex-col gap-4 h-full">
-      <h2 className="text-xl text-center text-yellow-300">Input</h2>
+    <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
+      <h2 className="text-xl text-center text-amber-400">Input</h2>
       
       <label 
         onDrop={onDrop}
         onDragOver={onDragOver}
-        className="w-full aspect-[3/4] bg-[#1a1a2e] border-2 border-dashed border-cyan-400 rounded-md flex items-center justify-center text-center p-2 cursor-pointer hover:bg-[#20203a] transition-colors"
+        className="w-full aspect-[3/4] bg-zinc-950 border-2 border-dashed border-amber-400 rounded-md flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
       >
         <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={onFileChange} disabled={isLoading} />
         {previewUrl ? (
@@ -75,12 +75,12 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
       <button
         onClick={onGenerate}
         disabled={isLoading || !inputImage}
-        className="w-full mt-auto px-4 py-3 bg-pink-600 text-white font-bold rounded-md transition-all duration-200 ease-in-out enabled:hover:bg-pink-700 enabled:active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
+        className="w-full mt-auto px-4 py-3 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] enabled:hover:bg-amber-500 enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:bg-gray-700 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
       >
         {getButtonText()}
       </button>
       {error && (
-        <div className="mt-2 p-3 bg-red-900/50 border border-red-500 rounded-md" role="alert">
+        <div className="mt-2 p-3 bg-red-900/50 border border-red-400 rounded-md" role="alert">
           <p className="text-center text-red-300 text-xs sm:text-sm">
             {error}
           </p>

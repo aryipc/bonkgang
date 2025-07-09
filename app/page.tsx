@@ -65,7 +65,7 @@ export default function Home() {
   }, [inputImage, selectedStyle, fetchStats]);
 
   return (
-    <div className="bg-[#1a1a2e] min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+    <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Header />
         <StyleSelector 

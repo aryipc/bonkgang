@@ -29,9 +29,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ artworkUrl, isLoading }) =>
   }, [isLoading, artworkUrl]);
 
   return (
-    <div className="w-full p-4 bg-[#2c2c54] border-2 border-purple-500 rounded-lg shadow-lg flex flex-col gap-4 h-full">
-      <h2 className="text-xl text-center text-yellow-300">Output</h2>
-      <div className="w-full aspect-square bg-[#131325] border-2 border-cyan-400 rounded-lg flex items-center justify-center overflow-hidden p-2">
+    <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
+      <h2 className="text-xl text-center text-amber-400">Output</h2>
+      <div className="w-full aspect-square bg-zinc-950 border-2 border-amber-400 rounded-lg flex items-center justify-center overflow-hidden p-2">
         {isLoading && <Loader />}
         {!isLoading && artworkUrl && (
           <img
@@ -48,8 +48,8 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ artworkUrl, isLoading }) =>
             <a
                 href={artworkUrl}
                 download="lets-bonk-gang-character.jpeg"
-                className={`w-full px-4 py-3 bg-green-600 text-white font-bold rounded-md transition-all duration-200 ease-in-out hover:bg-green-700 active:scale-95 flex items-center justify-center text-sm sm:text-base ${
-                    !isImageLoaded ? 'bg-gray-600 opacity-50 cursor-not-allowed' : ''
+                className={`w-full px-4 py-3 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] hover:bg-amber-500 active:translate-y-1 active:translate-x-1 active:shadow-none flex items-center justify-center text-sm sm:text-base ${
+                    !isImageLoaded ? '!bg-zinc-700 !text-gray-400 !shadow-none opacity-70 cursor-not-allowed' : ''
                 }`}
                 // Prevent click if image is not loaded
                 onClick={(e) => {
