@@ -3,28 +3,15 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 interface PromptInputProps {
-  onAnalyze: () => void;
   onGenerate: () => void;
-  isAnalyzing: boolean;
-  isGenerating: boolean;
+  isLoading: boolean;
   error: string | null;
   inputImage: File | null;
   setInputImage: (file: File | null) => void;
-  generatedPrompt: string | null;
-  setGeneratedPrompt: (prompt: string) => void;
-  selectedStyle: string;
-  setSelectedStyle: (style: string) => void;
 }
 
-const styles = [
-    { id: 'bonkgang', name: 'Bonk Gang' },
-    { id: 'triad', name: '古惑仔' },
-    { id: 'us_gang', name: 'US Gang' },
-];
-
-const PromptInput: React.FC<PromptInputProps> = ({ onAnalyze, onGenerate, isAnalyzing, isGenerating, error, inputImage, setInputImage, generatedPrompt, setGeneratedPrompt, selectedStyle, setSelectedStyle }) => {
+const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error, inputImage, setInputImage }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const isLoading = isAnalyzing || isGenerating;
 
   useEffect(() => {
     if (inputImage) {
@@ -58,19 +45,9 @@ const PromptInput: React.FC<PromptInputProps> = ({ onAnalyze, onGenerate, isAnal
     event.stopPropagation();
   };
 
-  const handleButtonClick = () => {
-    if (generatedPrompt !== null) {
-        onGenerate();
-    } else {
-        onAnalyze();
-    }
-  };
-
   const getButtonText = () => {
-      if (isAnalyzing) return 'ANALYZING...';
-      if (isGenerating) return 'GENERATING...';
-      if (generatedPrompt !== null) return 'GENERATE';
-      return 'ANALYZE IMAGE';
+      if (isLoading) return 'GENERATING...';
+      return 'GENERATE';
   }
 
   return (
@@ -95,45 +72,8 @@ const PromptInput: React.FC<PromptInputProps> = ({ onAnalyze, onGenerate, isAnal
         )}
       </label>
 
-      {generatedPrompt !== null && (
-        <>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="prompt-textarea" className="text-yellow-300 text-sm">Generated Prompt (edit if you like):</label>
-                <textarea
-                    id="prompt-textarea"
-                    value={generatedPrompt}
-                    onChange={(e) => setGeneratedPrompt(e.target.value)}
-                    className="w-full p-2 bg-[#1a1a2e] border border-cyan-400 rounded-md text-white text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none transition-shadow"
-                    rows={4}
-                    disabled={isLoading}
-                    aria-label="Generated Prompt"
-                />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label className="text-yellow-300 text-sm">Select Style:</label>
-                <div className="grid grid-cols-3 gap-2">
-                    {styles.map(style => (
-                        <button
-                            key={style.id}
-                            onClick={() => setSelectedStyle(style.id)}
-                            disabled={isLoading}
-                            className={`p-2 text-xs rounded-md border-2 transition-all duration-200 ${
-                                selectedStyle === style.id 
-                                    ? 'bg-cyan-500 border-cyan-300 text-white font-bold' 
-                                    : 'bg-[#1a1a2e] border-purple-500 text-cyan-300 hover:bg-purple-800'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                            aria-pressed={selectedStyle === style.id}
-                        >
-                            {style.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </>
-      )}
-
       <button
-        onClick={handleButtonClick}
+        onClick={onGenerate}
         disabled={isLoading || !inputImage}
         className="w-full mt-auto px-4 py-3 bg-pink-600 text-white font-bold rounded-md transition-all duration-200 ease-in-out enabled:hover:bg-pink-700 enabled:active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
       >

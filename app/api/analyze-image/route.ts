@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 // Helper to convert a file to a GoogleGenerativeAI.Part object.
 async function fileToGenerativePart(file: File) {
@@ -13,15 +13,15 @@ async function fileToGenerativePart(file: File) {
 
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("GEMINI_API_KEY environment variable is not set.");
+  if (!process.env.API_KEY) {
+    console.error("API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const visionModel = 'gemini-2.5-flash';
 
   // 2. Extract image from the request
@@ -42,13 +42,23 @@ export async function POST(request: Request) {
     const imagePart = await fileToGenerativePart(imageFile);
 
     // The vision prompt to generate a character description from the image.
-    const visionPrompt = `Analyze this image and create a detailed description of the character and their surroundings.
-- Describe the character's physical appearance, clothing (including colors), and accessories.
-- Note their overall personality, mood, or vibe.
-- If there is any text on their clothing or accessories, quote it exactly.
-- Describe the background scene in detail.
-CRITICAL: Do NOT mention any weapons, tools, or items the character might be holding. Describe only the character and background.
-Example: "A cheerful character with spiky blue hair, wearing a red jacket and sunglasses. Their shirt says 'COOL' in yellow letters. They are standing in front of a futuristic cityscape at night."`;
+    const visionPrompt = `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
+- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this should be 0.
+- "description": A detailed text description of the character and their surroundings. Describe physical appearance, clothing, accessories, personality, and background. If there is text on clothing, quote it exactly. Do NOT mention any items the character is holding in this description string.`;
+    
+    const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+            itemCount: { 
+                type: Type.INTEGER,
+                description: "The number of distinct items/weapons the character is holding."
+            },
+            description: {
+                type: Type.STRING,
+                description: "A detailed description of the character and background, excluding any items held."
+            }
+        }
+    };
 
     const response = await ai.models.generateContent({
         model: visionModel,
@@ -56,17 +66,21 @@ Example: "A cheerful character with spiky blue hair, wearing a red jacket and su
             { text: visionPrompt },
             imagePart,
         ],
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema,
+        },
     });
     
-    const description = response.text?.trim() ?? "";
+    const result = JSON.parse(response.text.trim());
 
-    if (description) {
-      return new Response(JSON.stringify({ description }), {
+    if (result && result.description !== undefined && result.itemCount !== undefined) {
+      return new Response(JSON.stringify(result), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
-      throw new Error("The AI failed to generate a description.");
+      throw new Error("The AI failed to generate a valid description and item count.");
     }
   } catch (error) {
     console.error("Error in image analysis process:", error);

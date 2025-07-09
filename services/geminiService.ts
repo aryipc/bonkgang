@@ -5,6 +5,27 @@ export interface ImageGenerationResult {
 
 export interface ImageAnalysisResult {
   description: string;
+  itemCount: number;
+}
+
+export interface StyleStats {
+  og_bonkgang: number;
+  hung_hing: number;
+  street_gang: number;
+}
+
+export async function getStats(): Promise<StyleStats> {
+  try {
+    const response = await fetch('/api/stats');
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    // Return default stats on error to prevent UI from crashing.
+    return { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
+  }
 }
 
 export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult> {
@@ -23,8 +44,8 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
     }
 
     const result: ImageAnalysisResult = await response.json();
-    if (!result.description) {
-      throw new Error("The server response did not contain a description.");
+    if (!result.description || result.itemCount === undefined) {
+      throw new Error("The server response was incomplete.");
     }
     return result;
   } catch (error) {
@@ -36,7 +57,7 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
   try {
     // Note: The endpoint name is kept for simplicity as we cannot rename files.
     const response = await fetch('/api/generate-pokemon-card', {
@@ -44,7 +65,7 @@ export async function generateBonkImage(prompt: string, style: string): Promise<
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt, style }),
+      body: JSON.stringify({ prompt, style, itemCount }),
     });
 
     if (!response.ok) {
