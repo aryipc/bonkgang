@@ -46,18 +46,18 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
   };
 
   const getButtonText = () => {
-      if (isLoading) return 'GENERATING...';
-      return 'GENERATE';
+      if (isLoading) return 'SUBMITTING...';
+      return 'SUBMIT';
   }
 
   return (
     <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
-      <h2 className="text-xl text-center text-amber-400">Input</h2>
+      <h2 className="text-xl text-center text-amber-400 uppercase">Submit Your Image</h2>
       
       <label 
         onDrop={onDrop}
         onDragOver={onDragOver}
-        className="w-full aspect-[3/4] bg-zinc-950 border-2 border-dashed border-amber-400 rounded-md flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
+        className="w-full aspect-square bg-zinc-950 border-2 border-dashed border-amber-400 rounded-md flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
       >
         <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={onFileChange} disabled={isLoading} />
         {previewUrl ? (

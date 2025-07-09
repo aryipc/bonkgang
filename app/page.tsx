@@ -88,8 +88,7 @@ export default function Home() {
         </main>
         <StatsDisplay stats={stats} />
         <footer className="mt-12 text-center text-xs text-gray-400">
-          <p>Powered by Google Gemini & Imagen</p>
-          <p>LetsBonkGang Generator &copy; 2024</p>
+          <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
         </footer>
       </div>
     </div>

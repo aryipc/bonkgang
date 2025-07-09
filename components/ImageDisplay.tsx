@@ -30,7 +30,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ artworkUrl, isLoading }) =>
 
   return (
     <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
-      <h2 className="text-xl text-center text-amber-400">Output</h2>
+      <h2 className="text-xl text-center text-amber-400 uppercase">Gang Member Image</h2>
       <div className="w-full aspect-square bg-zinc-950 border-2 border-amber-400 rounded-lg flex items-center justify-center overflow-hidden p-2">
         {isLoading && <Loader />}
         {!isLoading && artworkUrl && (
