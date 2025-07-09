@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Helper to convert a file to a GoogleGenerativeAI.Part object.
@@ -72,6 +73,10 @@ export async function POST(request: Request) {
         },
     });
     
+    if (!response.text) {
+        throw new Error("The AI response was empty. Unable to parse content.");
+    }
+
     const result = JSON.parse(response.text.trim());
 
     if (result && result.description !== undefined && result.itemCount !== undefined) {
