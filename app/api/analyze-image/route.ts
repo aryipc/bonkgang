@@ -3,15 +3,15 @@ import { GoogleGenAI } from "@google/genai";
 
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable is not set.");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   // 2. Extract image from the request
   let imageFile: File;
