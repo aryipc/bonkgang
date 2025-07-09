@@ -1,6 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
 
+// Helper to convert a file to a GoogleGenerativeAI.Part object.
+async function fileToGenerativePart(file: File) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    return {
+        inlineData: {
+            data: buffer.toString("base64"),
+            mimeType: file.type,
+        },
+    };
+}
+
 export async function POST(request: Request) {
   // 1. Check for API Key
   if (!process.env.GEMINI_API_KEY) {
@@ -12,61 +23,52 @@ export async function POST(request: Request) {
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const visionModel = 'gemini-2.5-flash';
 
   // 2. Extract image from the request
-  let imageFile: File;
+  let imageFile: File | null = null;
   try {
     const formData = await request.formData();
-    const file = formData.get('image');
-    if (!file || !(file instanceof File)) {
-      throw new Error("No image file found in the request.");
+    imageFile = formData.get('image') as File | null;
+    if (!imageFile) {
+        throw new Error("No image file found in the request.");
     }
-    imageFile = file;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid request body.";
+    const message = error instanceof Error ? error.message : "Invalid form data.";
     return new Response(JSON.stringify({ message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  // Helper function to convert File to a GoogleGenAI.Part object.
-  const fileToGenerativePart = async (file: File) => {
-    const arrayBuffer = await file.arrayBuffer();
-    const base64EncodedData = Buffer.from(arrayBuffer).toString('base64');
-    
-    return {
-      inlineData: { data: base64EncodedData, mimeType: file.type },
-    };
-  };
-
-  // 3. Run the AI analysis
+  // 3. Run the AI analysis logic
   try {
-    const visionModel = 'gemini-2.5-flash';
     const imagePart = await fileToGenerativePart(imageFile);
 
-    // Generate a creative description from the user's image.
-    const promptForVisionModel = `Analyze the main subject in the user's image. 
-    Generate a short, creative description (15-25 words) that captures its essence. 
-    Focus on personality, key visual traits, and style. This will be used to inspire a new cartoon character.
-    Example: 'A grumpy-looking bulldog with wrinkly cheeks, wearing a small, slightly-too-tight knitted sweater.'`;
+    // The vision prompt to generate a character description from the image.
+    // It is specifically instructed to IGNORE any weapons or held items.
+    const visionPrompt = `Analyze this image and describe the main character in 1-2 concise sentences.
+    Focus on their physical appearance, clothing, colors, and overall personality or mood.
+    CRITICAL: Do NOT mention any weapons, tools, or items the character is holding. Describe only the character itself.
+    Example: "A cheerful character with spiky blue hair, wearing a red jacket and sunglasses."`;
 
-    const visionResponse = await ai.models.generateContent({
+    const response = await ai.models.generateContent({
         model: visionModel,
-        contents: { parts: [imagePart, { text: promptForVisionModel }] },
-        config: {
-            temperature: 0.8,
-        }
+        contents: {
+            parts: [
+                { text: visionPrompt },
+                imagePart,
+            ],
+        },
     });
-
-    const characterDescription = visionResponse.text?.trim();
     
-    if (!characterDescription) {
-        throw new Error("Failed to generate a description from the image.");
-    }
+    const description = response.text.trim();
 
-    return new Response(JSON.stringify({ description: characterDescription }), {
+    if (description) {
+      return new Response(JSON.stringify({ description }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
-    });
-
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      throw new Error("The AI failed to generate a description.");
+    }
   } catch (error) {
     console.error("Error in image analysis process:", error);
     let message = "An unknown error occurred during analysis.";

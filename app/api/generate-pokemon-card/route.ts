@@ -33,11 +33,12 @@ export async function POST(request: Request) {
     const imageModel = 'imagen-3.0-generate-002';
     
     // Generate the new character artwork.
-    const artworkPrompt = `Digital art, masterpiece, cartoon style. 
-    An anthropomorphic dog character, full body shot, confidently holding a large wooden baseball bat.
-    The character's design is directly inspired by this description: "${characterDescription}".
-    The style should be fun, expressive, and slightly mischievous, similar to modern animated shows.
-    The background is a simple, vibrant solid color gradient.
+    const artworkPrompt = `Digital art, masterpiece, cartoon style.
+    Create an anthropomorphic dog character in the 'Bonk Gang' style.
+    The character MUST be holding a large wooden baseball bat.
+    Its appearance, clothing, and personality should be based on this description: "${characterDescription}".
+    Style: fun, expressive, full body shot, slightly mischievous, similar to modern animated shows.
+    Background: a simple, vibrant solid color gradient.
     CRITICAL: NO text, letters, logos, or borders on the image. ONLY the character and background.`;
 
     const imageResponse = await ai.models.generateImages({
