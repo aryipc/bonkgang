@@ -4,9 +4,10 @@ import { GoogleGenAI } from "@google/genai";
 export async function POST(request: Request) {
   // 1. Check for API Key
   if (!process.env.API_KEY) {
+    console.error("API_KEY environment variable is not set.");
     return new Response(
-        JSON.stringify({ message: "API key is not configured on the server." }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
@@ -29,12 +30,7 @@ export async function POST(request: Request) {
   // Helper function to convert File to a GoogleGenAI.Part object.
   const fileToGenerativePart = async (file: File) => {
     const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    let binaryString = '';
-    for (let i = 0; i < uint8Array.length; i++) {
-        binaryString += String.fromCharCode(uint8Array[i]);
-    }
-    const base64EncodedData = btoa(binaryString);
+    const base64EncodedData = Buffer.from(arrayBuffer).toString('base64');
     
     return {
       inlineData: { data: base64EncodedData, mimeType: file.type },
