@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         },
     });
     
-    const description = response.text.trim();
+    const description = response.text?.trim() ?? "";
 
     if (description) {
       return new Response(JSON.stringify({ description }), {
