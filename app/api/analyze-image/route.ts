@@ -53,12 +53,12 @@ Example: "A cheerful character with spiky blue hair, wearing a red jacket and su
 
     const response = await ai.models.generateContent({
         model: visionModel,
-        contents: {
+        contents: [{
             parts: [
                 { text: visionPrompt },
                 imagePart,
             ],
-        },
+        }],
     });
     
     const description = response.text?.trim() ?? "";
