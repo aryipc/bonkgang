@@ -43,11 +43,13 @@ export async function POST(request: Request) {
     const imagePart = await fileToGenerativePart(imageFile);
 
     // The vision prompt to generate a character description from the image.
-    // It is specifically instructed to IGNORE any weapons or held items.
-    const visionPrompt = `Analyze this image and describe the main character in 1-2 concise sentences.
-    Focus on their physical appearance, clothing, colors, and overall personality or mood.
-    CRITICAL: Do NOT mention any weapons, tools, or items the character is holding. Describe only the character itself.
-    Example: "A cheerful character with spiky blue hair, wearing a red jacket and sunglasses."`;
+    const visionPrompt = `Analyze this image and create a detailed description of the character and their surroundings.
+- Describe the character's physical appearance, clothing (including colors), and accessories.
+- Note their overall personality, mood, or vibe.
+- If there is any text on their clothing or accessories, quote it exactly.
+- Describe the background scene in detail.
+CRITICAL: Do NOT mention any weapons, tools, or items the character might be holding. Describe only the character and background.
+Example: "A cheerful character with spiky blue hair, wearing a red jacket and sunglasses. Their shirt says 'COOL' in yellow letters. They are standing in front of a futuristic cityscape at night."`;
 
     const response = await ai.models.generateContent({
         model: visionModel,

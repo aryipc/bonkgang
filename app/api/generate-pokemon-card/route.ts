@@ -36,10 +36,10 @@ export async function POST(request: Request) {
     const artworkPrompt = `Digital art, masterpiece, cartoon style.
     Create an anthropomorphic dog character in the 'Bonk Gang' style.
     The character MUST be holding a large wooden baseball bat.
-    Its appearance, clothing, and personality should be based on this description: "${characterDescription}".
+    Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
+    If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
     Style: fun, expressive, full body shot, slightly mischievous, similar to modern animated shows.
-    Background: a simple, vibrant solid color gradient.
-    CRITICAL: NO text, letters, logos, or borders on the image. ONLY the character and background.`;
+    CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
 
     const imageResponse = await ai.models.generateImages({
         model: imageModel,
