@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useCallback } from 'react';
@@ -14,6 +13,7 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<string>('bonkgang');
 
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);
@@ -56,7 +56,7 @@ export default function Home() {
     setGenerationResult(null);
 
     try {
-      const result = await generateBonkImage(generatedPrompt);
+      const result = await generateBonkImage(generatedPrompt, selectedStyle);
       setGenerationResult(result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -65,7 +65,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [generatedPrompt]);
+  }, [generatedPrompt, selectedStyle]);
 
   return (
     <div className="bg-[#1a1a2e] min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
@@ -82,6 +82,8 @@ export default function Home() {
             setInputImage={handleSetInputImage}
             generatedPrompt={generatedPrompt}
             setGeneratedPrompt={setGeneratedPrompt}
+            selectedStyle={selectedStyle}
+            setSelectedStyle={setSelectedStyle}
           />
           <ImageDisplay
             artworkUrl={generationResult?.artworkUrl ?? null}

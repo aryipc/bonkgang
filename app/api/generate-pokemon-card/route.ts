@@ -1,27 +1,57 @@
-
 import { GoogleGenAI } from "@google/genai";
+
+function getArtworkPrompt(style: string, characterDescription: string): string {
+    const baseEnding = `Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
+If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
+CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
+
+    switch (style) {
+        case 'triad':
+            return `Digital art, masterpiece, gritty Hong Kong comic book style (港漫).
+Create an anthropomorphic dog character.
+The character MUST be holding a Chinese cleaver (西瓜刀).
+Style: dark, intense, dynamic ink work, dramatic shadows, reminiscent of classic triad comics and movies. Full body shot.
+${baseEnding}`;
+        case 'us_gang':
+            return `Digital art, masterpiece, classic American comic book style (美漫风).
+Create an anthropomorphic dog character.
+The character MUST be holding a handgun.
+Style: bold lines, cel-shading, dynamic action pose, slightly gritty, reminiscent of 90s American comic books. Full body shot.
+${baseEnding}`;
+        case 'bonkgang':
+        default:
+            return `Digital art, masterpiece, cartoon style.
+Create an anthropomorphic dog character in the 'Bonk Gang' style.
+The character MUST be holding a large wooden baseball bat.
+Style: fun, expressive, full body shot, slightly mischievous, similar to modern animated shows.
+${baseEnding}`;
+    }
+}
+
 
 // The route is POST /api/generate-pokemon-card, but its function is to generate a Bonk Gang image from a prompt.
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("GEMINI_API_KEY environment variable is not set.");
+  if (!process.env.API_KEY) {
+    console.error("API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // 2. Extract prompt from the request
+  // 2. Extract prompt and style from the request
   let characterDescription: string;
+  let style: string;
   try {
     const body = await request.json();
     if (!body.prompt) {
         throw new Error("No prompt provided in the request body.");
     }
     characterDescription = body.prompt;
+    style = body.style || 'bonkgang'; // Default to bonkgang
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid request body.";
     return new Response(JSON.stringify({ message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -33,13 +63,7 @@ export async function POST(request: Request) {
     const imageModel = 'imagen-3.0-generate-002';
     
     // Generate the new character artwork.
-    const artworkPrompt = `Digital art, masterpiece, cartoon style.
-    Create an anthropomorphic dog character in the 'Bonk Gang' style.
-    The character MUST be holding a large wooden baseball bat.
-    Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
-    If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
-    Style: fun, expressive, full body shot, slightly mischievous, similar to modern animated shows.
-    CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
+    const artworkPrompt = getArtworkPrompt(style, characterDescription);
 
     const imageResponse = await ai.models.generateImages({
         model: imageModel,
@@ -70,7 +94,7 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
         // Check for specific Google API key error
         if (error.message.includes("API_KEY_INVALID")) {
-            message = "The configured API key is invalid. Please check the GEMINI_API_KEY environment variable on the server.";
+            message = "The configured API key is invalid. Please check the API_KEY environment variable on the server.";
         } else {
             message = `The API failed to process the request: ${error.message}`;
         }

@@ -37,7 +37,7 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ artworkUrl, isLoading }) =>
           <img
             src={artworkUrl}
             alt="Generated bonk gang character"
-            className="w-full h-full object-contain"
+            className={`w-full h-full object-contain transition-opacity duration-500 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setIsImageLoaded(true)}
           />
         )}

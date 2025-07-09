@@ -14,15 +14,15 @@ async function fileToGenerativePart(file: File) {
 
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("GEMINI_API_KEY environment variable is not set.");
+  if (!process.env.API_KEY) {
+    console.error("API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const visionModel = 'gemini-2.5-flash';
 
   // 2. Extract image from the request
@@ -77,7 +77,7 @@ Example: "A cheerful character with spiky blue hair, wearing a red jacket and su
     if (error instanceof Error) {
         // Check for specific Google API key error
         if (error.message.includes("API_KEY_INVALID")) {
-            message = "The configured API key is invalid. Please check the GEMINI_API_KEY environment variable on the server.";
+            message = "The configured API key is invalid. Please check the API_KEY environment variable on the server.";
         } else {
             message = `The API failed to process the request: ${error.message}`;
         }

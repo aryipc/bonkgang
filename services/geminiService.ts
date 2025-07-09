@@ -36,7 +36,7 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string): Promise<ImageGenerationResult> {
   try {
     // Note: The endpoint name is kept for simplicity as we cannot rename files.
     const response = await fetch('/api/generate-pokemon-card', {
@@ -44,7 +44,7 @@ export async function generateBonkImage(prompt: string): Promise<ImageGeneration
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, style }),
     });
 
     if (!response.ok) {
