@@ -111,9 +111,11 @@ const PromptInput: React.FC<PromptInputProps> = ({ onAnalyze, onGenerate, isAnal
         {getButtonText()}
       </button>
       {error && (
-        <p className="mt-2 text-center text-red-400 text-xs sm:text-sm" role="alert">
-          {error}
-        </p>
+        <div className="mt-2 p-3 bg-red-900/50 border border-red-500 rounded-md" role="alert">
+          <p className="text-center text-red-300 text-xs sm:text-sm">
+            {error}
+          </p>
+        </div>
       )}
     </div>
   );
