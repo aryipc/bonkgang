@@ -65,9 +65,17 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Error in Bonk Gang image generation process:", error);
-    const message = error instanceof Error ? error.message : "An unknown error occurred during generation.";
+    let message = "An unknown error occurred during generation.";
+    if (error instanceof Error) {
+        // Check for specific Google API key error
+        if (error.message.includes("API_KEY_INVALID")) {
+            message = "The configured API key is invalid. Please check the GEMINI_API_KEY environment variable on the server.";
+        } else {
+            message = `The API failed to process the request: ${error.message}`;
+        }
+    }
     return new Response(
-        JSON.stringify({ message: `The API failed to process the request: ${message}` }),
+        JSON.stringify({ message }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
