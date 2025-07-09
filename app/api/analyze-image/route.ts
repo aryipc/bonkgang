@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 // Helper to convert a file to a GoogleGenerativeAI.Part object.
@@ -14,15 +13,15 @@ async function fileToGenerativePart(file: File) {
 
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable is not set.");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const visionModel = 'gemini-2.5-flash';
 
   // 2. Extract image from the request
@@ -53,12 +52,10 @@ Example: "A cheerful character with spiky blue hair, wearing a red jacket and su
 
     const response = await ai.models.generateContent({
         model: visionModel,
-        contents: {
-            parts: [
-                { text: visionPrompt },
-                imagePart,
-            ],
-        },
+        contents: [
+            { text: visionPrompt },
+            imagePart,
+        ],
     });
     
     const description = response.text?.trim() ?? "";

@@ -32,15 +32,15 @@ ${baseEnding}`;
 // The route is POST /api/generate-pokemon-card, but its function is to generate a Bonk Gang image from a prompt.
 export async function POST(request: Request) {
   // 1. Check for API Key
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable is not set.");
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY environment variable is not set.");
     return new Response(
         JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   // 2. Extract prompt and style from the request
   let characterDescription: string;
