@@ -12,8 +12,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // A new, highly realistic baseball bat path with a distinct flared knob, based on user feedback.
-        const batIconPath = new Path2D("M 5,2 C 5,0, 15,0, 15,2 Q 14, 22, 10.5, 40 C 11.5, 42, 11.5, 44, 9.5, 45 C 7.5, 44, 7.5, 42, 8.5, 40 Q 6, 22, 5, 2 Z");
+        // Final refinement: A rounder head and a flatter, more realistic knob.
+        const batIconPath = new Path2D("M 4,4 Q 10,0, 16,4 C 15,15, 13,30, 12,40 C 13,42, 13,45, 12.5,46 L 7.5,46 C 7,45, 7,42, 8,40 C 7,30, 5,15, 4,4 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
@@ -52,11 +52,10 @@ const ParticleBackground: React.FC = () => {
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation * Math.PI / 180);
                 
-                // Scale is adjusted for the new, larger base size of the particles.
                 const scale = this.size / 5; 
                 ctx.scale(scale, scale);
-                // Center the new, taller path's coordinates (origin is ~10, 24)
-                ctx.translate(-10, -24); 
+                // Adjust translation for the new path's center.
+                ctx.translate(-10, -23); 
                 
                 ctx.fillStyle = this.color;
                 ctx.fill(batIconPath);
@@ -70,7 +69,7 @@ const ParticleBackground: React.FC = () => {
             let numberOfParticles = (canvas.height * canvas.width) / 12000;
             if (numberOfParticles > 100) numberOfParticles = 100; // Cap particles for performance
             for (let i = 0; i < numberOfParticles; i++) {
-                // Increased size for better visibility of the new detailed shape.
+                // Increased size for better visibility of the detailed shape.
                 let size = (Math.random() * 5) + 8; 
                 let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
