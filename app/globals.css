@@ -5,4 +5,7 @@
 body {
   font-family: 'Archivo Black', sans-serif;
   background-color: #121212;
+  /* Add a subtle grain/noise texture for a grittier, more atmospheric background */
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJzIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVColorMatrixIHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjc2gpIiBvcGFjaXR5PSIwLjA1NSIvPjwvc3ZnPg==');
+  background-attachment: fixed;
 }
