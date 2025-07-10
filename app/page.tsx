@@ -7,6 +7,7 @@ import PromptInput from '@/components/PromptInput';
 import ImageDisplay from '@/components/ImageDisplay';
 import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
+import FooterLinks from '@/components/FooterLinks';
 
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
@@ -96,7 +97,8 @@ export default function Home() {
           )}
         </main>
         <StatsDisplay stats={stats} />
-        <footer className="mt-12 text-center text-xs text-gray-400">
+        <FooterLinks />
+        <footer className="mt-4 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
         </footer>
       </div>
