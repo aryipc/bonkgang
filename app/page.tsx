@@ -34,45 +34,47 @@ export default function Home() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
 
-  useEffect(() => {
-    const initializeApp = async () => {
-      setIsInitializing(true);
-      setInitError(null);
-      try {
-        const [statsResponse, ipStatusResponse] = await Promise.all([
-          fetch('/api/stats'),
-          fetch('/api/ip-status')
-        ]);
+  // Moved initializeApp outside of useEffect and wrapped in useCallback
+  // to allow it to be called by the "Retry" button.
+  const initializeApp = useCallback(async () => {
+    setIsInitializing(true);
+    setInitError(null);
+    try {
+      const [statsResponse, ipStatusResponse] = await Promise.all([
+        fetch('/api/stats'),
+        fetch('/api/ip-status')
+      ]);
 
-        if (!statsResponse.ok) {
-          const errorData = await statsResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to load member stats.');
-        }
-
-        if (!ipStatusResponse.ok) {
-          const errorData = await ipStatusResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to load user status.');
-        }
-
-        const [statsData, ipStatusData] = await Promise.all([
-          statsResponse.json(),
-          ipStatusResponse.json()
-        ]);
-        
-        setStats(statsData);
-        setIpStatus(ipStatusData);
-
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
-        console.error("Initialization failed:", err);
-        setInitError(errorMessage);
-      } finally {
-        setIsInitializing(false);
+      if (!statsResponse.ok) {
+        const errorData = await statsResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to load member stats.');
       }
-    };
 
-    initializeApp();
+      if (!ipStatusResponse.ok) {
+        const errorData = await ipStatusResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to load user status.');
+      }
+
+      const [statsData, ipStatusData] = await Promise.all([
+        statsResponse.json(),
+        ipStatusResponse.json()
+      ]);
+      
+      setStats(statsData);
+      setIpStatus(ipStatusData);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
+      console.error("Initialization failed:", err);
+      setInitError(errorMessage);
+    } finally {
+      setIsInitializing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]);
 
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);
@@ -165,6 +167,13 @@ export default function Home() {
             <div className="p-6 bg-red-900/50 border border-red-400 rounded-md" role="alert">
               <h2 className="text-xl text-red-300 mb-2 font-bold">Initialization Failed</h2>
               <p className="text-red-300">{initError}</p>
+              <button
+                onClick={initializeApp}
+                disabled={isInitializing}
+                className="mt-6 px-8 py-2 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] enabled:hover:bg-amber-500 enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:bg-gray-700 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
+              >
+                RETRY
+              </button>
             </div>
           </div>
         ) : (
