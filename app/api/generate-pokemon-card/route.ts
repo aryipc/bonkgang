@@ -1,9 +1,10 @@
 
+
 import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
 import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
 
-function getArtworkPrompt(style: string, characterDescription: string, itemCount: number): string {
+function getArtworkPrompt(style: string, characterDescription: string, itemCount: number, testWeaponId?: string): string {
     const baseEnding = `Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
 If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
 CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
@@ -67,7 +68,15 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
 
     const selectedWeaponSet = weapons[style as keyof typeof weapons] || weapons['og_bonkgang'];
     
-    const selectedWeaponDefinition = getWeightedRandomElement(selectedWeaponSet);
+    let selectedWeaponDefinition;
+    if (testWeaponId) {
+        // If a test weapon is specified, find it directly.
+        selectedWeaponDefinition = selectedWeaponSet.find(w => w.id === testWeaponId);
+    } else {
+        // Otherwise, get a random one.
+        selectedWeaponDefinition = getWeightedRandomElement(selectedWeaponSet);
+    }
+    
     const randomWeapon = selectedWeaponDefinition?.value;
 
     if (randomWeapon) {
@@ -166,7 +175,8 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ message: "Invalid request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const { prompt: characterDescription, style = 'og_bonkgang', itemCount } = body;
+  const { prompt: characterDescription, style = 'og_bonkgang', itemCount, testWeaponId } = body;
+  const isTestRun = !!testWeaponId;
 
   if (!characterDescription) {
     return new Response(JSON.stringify({ message: "No prompt provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -175,40 +185,41 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ message: "Item count not provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  // --- IP Rate Limiting & DB Reads ---
-  let ipUsageData;
-  let userUsage: IpUsage = { totalSubmissions: 0, submittedGangs: [] };
+  // --- IP Rate Limiting & DB Reads (Skip for test runs) ---
+  if (!isTestRun) {
+      let ipUsageData;
+      let userUsage: IpUsage = { totalSubmissions: 0, submittedGangs: [] };
 
-  try {
-      ipUsageData = await readIpUsage();
-  } catch (dbError) {
-      console.error("Failed to read IP usage DB:", dbError);
-      let message = "Service is temporarily unavailable due to a database error.";
-      if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
-          message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
+      try {
+          ipUsageData = await readIpUsage();
+      } catch (dbError) {
+          console.error("Failed to read IP usage DB:", dbError);
+          let message = "Service is temporarily unavailable due to a database error.";
+          if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
+              message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
+          }
+          return new Response(
+              JSON.stringify({ message }),
+              { status: 503, headers: { 'Content-Type': 'application/json' } }
+          );
       }
-      return new Response(
-          JSON.stringify({ message }),
-          { status: 503, headers: { 'Content-Type': 'application/json' } }
-      );
+
+      userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+
+      if (userUsage.totalSubmissions >= 2) {
+          return new Response(
+          JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }
+          );
+      }
+
+      if (userUsage.submittedGangs.includes(style)) {
+          return new Response(
+          JSON.stringify({ message: "You have already submitted to this gang." }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+          );
+      }
   }
-
-  userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
-
-  if (userUsage.totalSubmissions >= 2) {
-      return new Response(
-      JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
-      );
-  }
-
-  if (userUsage.submittedGangs.includes(style)) {
-      return new Response(
-      JSON.stringify({ message: "You have already submitted to this gang." }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
-  }
-
 
   // --- AI Generation ---
   if (!process.env.API_KEY) {
@@ -223,7 +234,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const imageModel = 'imagen-3.0-generate-002';
-    const artworkPrompt = getArtworkPrompt(style, characterDescription, itemCount);
+    const artworkPrompt = getArtworkPrompt(style, characterDescription, itemCount, testWeaponId);
 
     const imageResponse = await ai.models.generateImages({
         model: imageModel,
@@ -242,12 +253,22 @@ export async function POST(request: NextRequest) {
     }
       
     const artworkUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
-      
+    
+    // If it's a test run, return early without writing to DB
+    if (isTestRun) {
+        return new Response(JSON.stringify({ artworkUrl }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
     // --- DB Write for production runs ---
     const stats = await readStats();
     stats[style] = (stats[style] || 0) + 1;
     await writeStats(stats);
     
+    const ipUsageData = await readIpUsage();
+    let userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
     userUsage.totalSubmissions += 1;
     if (!userUsage.submittedGangs.includes(style)) {
         userUsage.submittedGangs.push(style);

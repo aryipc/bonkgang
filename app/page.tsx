@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -27,6 +28,7 @@ export default function Home() {
   const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const initializeApp = useCallback(async () => {
     setIsInitializing(true);
@@ -89,36 +91,49 @@ export default function Home() {
       setIsGenerationAttempted(false);
     }
   };
-
-  const handleGenerate = useCallback(async () => {
-    if (!inputImage) {
-        setGenerateError("Please upload an image first.");
-        return;
-    };
-
-    if (!selectedStyle) {
-        setGenerateError("Please choose a gang first.");
-        return;
+  
+  const handleReset = async () => {
+    setIsResetting(true);
+    try {
+      const response = await fetch('/api/reset-ip', { method: 'POST' });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reset submissions.');
+      }
+      // Reload the page to get the fresh state
+      window.location.reload();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setGenerateError(errorMessage); // Show error in the main error display
+      setIsResetting(false);
     }
+  };
 
-    if (ipStatus && ipStatus.totalSubmissions >= 2) {
-      setGenerateError("You have reached the maximum number of generations (2).");
+  const runGeneration = useCallback(async (style: string, testWeaponId?: string) => {
+    if (!inputImage) {
+      setGenerateError("Please upload an image first.");
       return;
     }
 
-    setIsGenerationAttempted(true);
     setIsOutputVisible(true);
     setIsGenerating(true);
     setGenerateError(null);
     setGenerationResult(null);
+    if (!testWeaponId) {
+      setIsGenerationAttempted(true);
+    }
 
     try {
       const analysisResult = await analyzeImage(inputImage);
-      const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
+      const result = await generateBonkImage(analysisResult.description, style, analysisResult.itemCount, testWeaponId);
       
       setGenerationResult(result);
-      setStats(result.newStats);
-      setIpStatus(result.newIpStatus);
+      
+      // Only update stats if they are returned (i.e., not a test run)
+      if (result.newStats && result.newIpStatus) {
+        setStats(result.newStats);
+        setIpStatus(result.newIpStatus);
+      }
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -127,7 +142,23 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [inputImage, selectedStyle, ipStatus]);
+  }, [inputImage]);
+
+  const handleGenerate = useCallback(() => {
+    if (!selectedStyle) {
+      setGenerateError("Please choose a gang first.");
+      return;
+    }
+    if (ipStatus && ipStatus.totalSubmissions >= 2) {
+      setGenerateError("You have reached the maximum number of generations (2).");
+      return;
+    }
+    runGeneration(selectedStyle);
+  }, [selectedStyle, ipStatus, runGeneration]);
+  
+  const handleTestGenerate = useCallback((weaponId: string) => {
+      runGeneration('hung_hing', weaponId);
+  }, [runGeneration]);
 
   // Dedicated loading UI for initialization phase
   if (isInitializing && !initError) {
@@ -195,6 +226,35 @@ export default function Home() {
             </main>
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
             
+             {/* --- TEST BUTTONS --- */}
+            <div className="w-full max-w-3xl mt-8 p-4 bg-zinc-950 border-2 border-dashed border-zinc-700 rounded-lg">
+                <h3 className="text-center text-sm text-zinc-400 mb-4">Dev Testing Area</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <button
+                        onClick={() => handleTestGenerate('bottle')}
+                        disabled={isGenerating || !inputImage}
+                        className="px-4 py-2 bg-sky-600 text-white font-bold text-xs rounded-md transition-all enabled:hover:bg-sky-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                     >
+                        (Test) Hung Hing w/ Beer Bottle
+                     </button>
+                     <button
+                        onClick={() => handleTestGenerate('dragon_staff')}
+                        disabled={isGenerating || !inputImage}
+                        className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-md transition-all enabled:hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                     >
+                        (Test) Hung Hing w/ Dragon Staff
+                     </button>
+                </div>
+                 <div className="text-center mt-6">
+                    <button
+                        onClick={handleReset}
+                        disabled={isResetting || isGenerating}
+                        className="text-xs text-zinc-500 hover:text-amber-400 disabled:text-zinc-600 disabled:cursor-not-allowed underline"
+                    >
+                        {isResetting ? 'Resetting...' : 'Reset My Submissions (For Testing)'}
+                    </button>
+                </div>
+            </div>
           </>
         )}
         

@@ -13,8 +13,8 @@ export interface IpStatus {
 
 export interface ImageGenerationResult {
   artworkUrl: string;
-  newStats: StyleStats;
-  newIpStatus: IpStatus;
+  newStats?: StyleStats;
+  newIpStatus?: IpStatus;
 }
 
 export interface ImageAnalysisResult {
@@ -60,9 +60,12 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number, testWeaponId?: string): Promise<ImageGenerationResult> {
   try {
-    const payload = { prompt, style, itemCount };
+    const payload: { [key: string]: any } = { prompt, style, itemCount };
+    if (testWeaponId) {
+      payload.testWeaponId = testWeaponId;
+    }
 
     const response = await fetch('/api/generate-pokemon-card', {
       method: 'POST',
