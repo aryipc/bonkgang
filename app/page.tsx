@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -19,7 +20,7 @@ interface IpStatus {
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
   const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start in loading state
   const [error, setError] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [stats, setStats] = useState<StyleStats | null>(null);
@@ -28,35 +29,45 @@ export default function Home() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const fetchedStats = await getStats();
-      setStats(fetchedStats);
-    } catch (error) {
-      console.error("UI failed to fetch stats", error);
-    }
-  }, []);
-
   useEffect(() => {
-    const fetchIpStatus = async () => {
-        try {
-            const response = await fetch('/api/ip-status');
-            if (!response.ok) {
-                console.error('Failed to fetch IP status:', response.statusText);
-                setIpStatus({ submittedGangs: [], totalSubmissions: 0 }); // Use a default on error
-                return;
-            }
-            const data = await response.json();
-            setIpStatus(data);
-        } catch (error) {
-            console.error("UI failed to fetch IP status", error);
-            setIpStatus({ submittedGangs: [], totalSubmissions: 0 }); // Use a default on error
+    const initializeApp = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [statsResponse, ipStatusResponse] = await Promise.all([
+          fetch('/api/stats'),
+          fetch('/api/ip-status')
+        ]);
+
+        if (!statsResponse.ok) {
+          const errorData = await statsResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to load member stats.');
         }
+
+        if (!ipStatusResponse.ok) {
+          const errorData = await ipStatusResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to load user status.');
+        }
+
+        const [statsData, ipStatusData] = await Promise.all([
+          statsResponse.json(),
+          ipStatusResponse.json()
+        ]);
+        
+        setStats(statsData);
+        setIpStatus(ipStatusData);
+
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
+        console.error("Initialization failed:", err);
+        setError(`Initialization failed. ${errorMessage}`);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    
-    fetchIpStatus();
-    fetchStats();
-  }, [fetchStats]);
+
+    initializeApp();
+  }, []);
 
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);

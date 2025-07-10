@@ -1,4 +1,5 @@
 
+
 export interface ImageGenerationResult {
   artworkUrl: string;
 }
@@ -15,17 +16,12 @@ export interface StyleStats {
 }
 
 export async function getStats(): Promise<StyleStats> {
-  try {
-    const response = await fetch('/api/stats');
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching stats:", error);
-    // Return default stats on error to prevent UI from crashing.
-    return { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
+  const response = await fetch('/api/stats');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'The server returned an invalid response.' }));
+    throw new Error(errorData.message || `Server error: ${response.status}`);
   }
+  return await response.json();
 }
 
 export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult> {

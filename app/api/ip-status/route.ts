@@ -1,4 +1,5 @@
 
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { readIpUsage, type IpUsage } from '@/app/api/lib/db';
 
@@ -21,8 +22,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(userUsage);
 
     } catch (error) {
-        console.error("Failed to read IP usage stats:", error);
-        // Return default usage on error to avoid blocking the UI
-        return NextResponse.json(defaultUsage, { status: 500 });
+        console.error("API route /api/ip-status failed to read DB:", error);
+        // Return an explicit error instead of default data to prevent unexpected UI behavior.
+        return NextResponse.json(
+            { message: "Service is temporarily unavailable due to a database error." },
+            { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
     }
 }
