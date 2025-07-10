@@ -40,16 +40,16 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
             { 
                 id: 'bottle', 
                 value: { 
-                    single: "a broken green glass beer bottle, held by the neck like a dagger. The bottom is smashed off, leaving sharp, jagged glass spikes at the end.",
-                    plural: "two broken green glass beer bottles, held by their necks like daggers. The bottoms are smashed off, leaving sharp, jagged glass spikes at the ends."
+                    single: "a broken green glass beer bottle, wielded as a weapon. It is held firmly by the neck, with the sharp, jagged glass spikes of the broken end facing outwards.",
+                    plural: "two broken green glass beer bottles, wielded as weapons. They are held firmly by their necks, with the sharp, jagged glass spikes of the broken ends facing outwards."
                 }, 
                 weight: 40 
             },
             { 
                 id: 'dragon_staff',
                 value: {
-                    single: "a powerful, dark ceremonial dragon-headed baton or short scepter, intricately carved with detailed Chinese dragon heads and scales. It is short, about the length of a police baton. The dragon's tail forms the handle.",
-                    plural: "powerful, dark ceremonial dragon-headed batons or short scepters, intricately carved with detailed Chinese dragon heads and scales. They are short, about the length of a police baton. The dragon's tail forms the handle." 
+                    single: "a short, heavy truncheon or baton, intricately carved to look like a Chinese dragon. The head of the dragon forms the tip of the weapon, and its tail is the handle. The weapon MUST BE short, about the length of a forearm, and held in one hand like a club.",
+                    plural: "two short, heavy truncheons or batons, intricately carved to look like Chinese dragons. The head of each dragon forms the tip of the weapon, and its tail is the handle. The weapons MUST BE short, about the length of a forearm, and held one in each hand like clubs." 
                 },
                 weight: 10
             }
