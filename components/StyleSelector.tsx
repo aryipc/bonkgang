@@ -25,11 +25,13 @@ interface StyleSelectorProps {
     selectedStyle: string | null;
     onStyleSelect: (style: string) => void;
     isLoading: boolean;
+    error: string | null;
     submittedGangs: string[];
 }
 
-const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSelect, isLoading, submittedGangs }) => {
+const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSelect, isLoading, error, submittedGangs }) => {
     const selectedGang = gangs.find(g => g.id === selectedStyle);
+    const isInitializationError = error?.startsWith('Initialization failed') ?? false;
     
     return (
         <div className="w-full max-w-lg flex flex-col items-center gap-3 my-6" role="radiogroup" aria-labelledby="gang-label">
@@ -43,7 +45,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSel
                             role="radio"
                             aria-checked={selectedStyle === gang.id}
                             onClick={() => onStyleSelect(gang.id)}
-                            disabled={isLoading || isSubmitted}
+                            disabled={isLoading || isSubmitted || isInitializationError}
                             className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 ${
                                 isSubmitted
                                     ? 'bg-zinc-700 border-zinc-600 text-gray-500 cursor-not-allowed'

@@ -164,7 +164,8 @@ export default function Home() {
         <StyleSelector 
           selectedStyle={selectedStyle}
           onStyleSelect={handleStyleSelect}
-          isLoading={isLoading || !ipStatus}
+          isLoading={isLoading}
+          error={error}
           submittedGangs={ipStatus?.submittedGangs ?? []}
         />
         <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
@@ -172,7 +173,7 @@ export default function Home() {
               <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
                 <PromptInput
                   onGenerate={handleGenerate}
-                  isLoading={isLoading || !ipStatus}
+                  isLoading={isLoading}
                   error={error}
                   inputImage={inputImage}
                   setInputImage={handleSetInputImage}
