@@ -12,9 +12,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // A new, highly realistic baseball bat path with proper taper, barrel, and knob.
-        // This version uses quadratic curves for a smooth, non-linear taper.
-        const batIconPath = new Path2D("M5,2 C5,0, 15,0, 15,2 Q14,20, 12.5,36 C13.5,38, 6.5,38, 7.5,36 Q6,20, 5,2 Z");
+        // A new, highly realistic baseball bat path with a distinct flared knob, based on user feedback.
+        const batIconPath = new Path2D("M 5,2 C 5,0, 15,0, 15,2 Q 14, 22, 10.5, 40 C 11.5, 42, 11.5, 44, 9.5, 45 C 7.5, 44, 7.5, 42, 8.5, 40 Q 6, 22, 5, 2 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
@@ -56,8 +55,8 @@ const ParticleBackground: React.FC = () => {
                 // Scale is adjusted for the new, larger base size of the particles.
                 const scale = this.size / 5; 
                 ctx.scale(scale, scale);
-                // Center the new path's coordinates (origin is ~10, 19)
-                ctx.translate(-10, -19); 
+                // Center the new, taller path's coordinates (origin is ~10, 24)
+                ctx.translate(-10, -24); 
                 
                 ctx.fillStyle = this.color;
                 ctx.fill(batIconPath);
