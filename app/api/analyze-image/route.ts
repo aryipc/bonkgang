@@ -51,10 +51,13 @@ export async function POST(request: Request) {
   try {
     const imagePart = await fileToGenerativePart(imageFile);
 
-    // The vision prompt to generate a character description from the image.
+    // A more robust vision prompt to generate a character description from the image.
     const visionPrompt = `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
-- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this should be 0.
-- "description": A detailed text description of the character and their surroundings. Describe physical appearance, clothing, accessories, personality, and background. If there is text on clothing, quote it exactly. Do NOT mention any items the character is holding in this description string.`;
+
+- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this value MUST be 0.
+- "description": A detailed text description of the character's appearance (like species, build, colors), clothing, and non-held accessories. This description should also capture the character's apparent personality and the background scene. If there is text on clothing, quote it exactly. CRITICAL: Do NOT mention any items the character is holding in this description string.
+
+Your entire response MUST be a valid JSON object conforming to the schema. Do not add any commentary or markdown formatting.`;
     
     const responseSchema = {
         type: Type.OBJECT,
@@ -82,11 +85,30 @@ export async function POST(request: Request) {
         },
     });
     
+    // More robust response validation
+    const finishReason = response?.candidates?.[0]?.finishReason;
+    if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+      let userMessage = `The AI generation was stopped for an unexpected reason: ${finishReason}.`;
+      if (finishReason === 'SAFETY') {
+          userMessage = "The request was blocked by the AI's safety filter. Please try using a different image.";
+      }
+      console.error(`AI analysis stopped. Reason: ${finishReason}. Full response:`, JSON.stringify(response, null, 2));
+      throw new Error(userMessage);
+    }
+    
     if (!response.text) {
-        throw new Error("The AI response was empty. Unable to parse content.");
+        console.error("AI analysis response was empty. Full response:", JSON.stringify(response, null, 2));
+        throw new Error("The AI returned an empty response. This can happen with some images; please try another.");
+    }
+    
+    let result;
+    try {
+        result = JSON.parse(response.text.trim());
+    } catch (parseError) {
+        console.error("Failed to parse AI JSON response. Raw text:", response.text);
+        throw new Error("The AI returned a response in an invalid format.");
     }
 
-    const result = JSON.parse(response.text.trim());
 
     if (result && result.description !== undefined && result.itemCount !== undefined) {
       return new Response(JSON.stringify(result), {
@@ -94,6 +116,7 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
+      console.error("AI response was missing required JSON fields. Parsed result:", result);
       throw new Error("The AI failed to generate a valid description and item count.");
     }
   } catch (error) {
@@ -104,7 +127,8 @@ export async function POST(request: Request) {
         if (error.message.includes("API_KEY_INVALID")) {
             message = "The configured API key is invalid. Please check the API_KEY environment variable on the server.";
         } else {
-            message = `The API failed to process the request: ${error.message}`;
+            // Use the specific error message from the try block
+            message = error.message;
         }
     }
     return new Response(

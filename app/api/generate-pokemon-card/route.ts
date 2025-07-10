@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
         if (error.message.includes("API_KEY_INVALID")) {
             message = "The configured API key is invalid. Please check the API_KEY environment variable on the server.";
         } else {
-            message = `The API failed to process the request: ${error.message}`;
+            message = error.message;
         }
     }
     return new Response(
