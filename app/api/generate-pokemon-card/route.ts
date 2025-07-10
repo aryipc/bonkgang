@@ -36,7 +36,14 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
     const weapons: { [key: string]: WeightedWeaponList } = {
         hung_hing: [
             { id: 'cleaver', value: { single: "a Chinese cleaver (西瓜刀)", plural: "Chinese cleavers (西瓜刀)" }, weight: 50 },
-            { id: 'bottle', value: { single: "a green glass beer bottle, held in a reverse grip by its neck with the base of the bottle pointing upwards", plural: "green glass beer bottles, each held in a reverse grip by its neck with the base of the bottle pointing upwards" }, weight: 40 },
+            { 
+                id: 'bottle', 
+                value: { 
+                    single: "a green glass beer bottle. The bottle MUST be held in a reverse grip by its neck, with the base of the bottle pointing upwards, ready to strike.", 
+                    plural: "green glass beer bottles. The bottles MUST be held in a reverse grip by their necks, with the bases of the bottles pointing upwards, ready to strike."
+                }, 
+                weight: 40 
+            },
             { 
                 id: 'dragon_staff',
                 value: {
