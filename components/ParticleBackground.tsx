@@ -12,8 +12,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Final refinement: A rounder head and a flatter, more realistic knob.
-        const batIconPath = new Path2D("M 4,4 Q 10,0, 16,4 C 15,15, 13,30, 12,40 C 13,42, 13,45, 12.5,46 L 7.5,46 C 7,45, 7,42, 8,40 C 7,30, 5,15, 4,4 Z");
+        // Final final refinement: A flatter knob at the end of the handle.
+        const batIconPath = new Path2D("M 4,4 Q 10,0, 16,4 C 15,15, 13,30, 12,40 C 13,41, 13,43, 12.5,44 L 7.5,44 C 7,43, 7,41, 8,40 C 7,30, 5,15, 4,4 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
