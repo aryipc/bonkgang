@@ -121,7 +121,7 @@ export default function Home() {
        <InfoModal
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
-        message="你最多只可以加入两个gang，加入过的gang就不能再加入。"
+        message="You can join a maximum of two gangs. You cannot rejoin a gang you have already joined."
       />
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Header />

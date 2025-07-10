@@ -12,7 +12,7 @@ const gangs = [
     { 
         id: 'hung_hing', 
         name: 'Hung Hing', 
-        description: 'From the gritty streets of Hong Kong. These triad-inspired warriors are masters of the cleaver, defined by intense ink work and dramatic shadows.' 
+        description: "Hong Kong's ruthless streets breed these cleaver-wielding gangsters, draped in dragon tattoos and chaos.\" (Inspired by classic gangster films 古惑仔)" 
     },
     { 
         id: 'street_gang', 
