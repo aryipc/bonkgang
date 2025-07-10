@@ -2,10 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes gradient-bg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 body {
   font-family: 'Archivo Black', sans-serif;
+  /* Base color for browsers that might not support the gradient/animation */
   background-color: #121212;
-  /* Add a subtle grain/noise texture for a grittier, more atmospheric background */
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJzIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVColorMatrixIHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjc2gpIiBvcGFjaXR5PSIwLjA1NSIvPjwvc3ZnPg==');
+
+  /* Layered background: noise on top of animated gradient */
+  background-image: 
+    /* Top layer: subtle grain texture, slightly more visible now */
+    url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJzIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVColorMatrixIHR5cGU9InNhdHVyYXRlIiB2YWx1ZXM9IjAiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjc2gpIiBvcGFjaXR5PSIwLjA4NSIvPjwvc3ZnPg=='),
+    /* Bottom layer: animated gradient */
+    linear-gradient(-45deg, #181818, #222222, #121212, #252525);
+  
+  background-size: auto, 400% 400%;
   background-attachment: fixed;
+  animation: gradient-bg 20s ease infinite;
 }
