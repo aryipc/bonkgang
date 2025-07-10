@@ -40,8 +40,8 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
             { 
                 id: 'bottle', 
                 value: { 
-                    single: "CRITICAL INSTRUCTION: The character is holding a green glass beer bottle as an improvised weapon. The hand MUST be wrapped around the bottle's neck. The base of the bottle MUST be pointing up towards the sky. The character is NOT holding it in a normal drinking position; they are holding it like a club, ready to strike downwards with the heavy base.",
-                    plural: "CRITICAL INSTRUCTION: The character is dual-wielding two green glass beer bottles as improvised weapons. For each bottle, the hand MUST be wrapped around the bottle's neck. The base of the bottle MUST be pointing up towards the sky. The character is NOT holding them in a normal drinking position; they are holding them like clubs, ready to strike downwards with the heavy bases."
+                    single: "a broken green glass beer bottle, held by the neck like a dagger. The bottom is smashed off, leaving sharp, jagged glass spikes at the end.",
+                    plural: "two broken green glass beer bottles, held by their necks like daggers. The bottoms are smashed off, leaving sharp, jagged glass spikes at the ends."
                 }, 
                 weight: 40 
             },
