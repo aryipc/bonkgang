@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -191,7 +190,7 @@ export default function Home() {
             />
           )}
         </main>
-        <StatsDisplay stats={stats} />
+        <StatsDisplay stats={stats} isLoading={isLoading} error={error} />
         <FooterLinks />
         <footer className="mt-4 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
