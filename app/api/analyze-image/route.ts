@@ -51,12 +51,13 @@ export async function POST(request: Request) {
   try {
     const imagePart = await fileToGenerativePart(imageFile);
     const textPart = {
-        text: `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
+        text: `Analyze the provided image and return a JSON object.
+The JSON object must contain two properties: "description" and "itemCount".
 
-- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this value MUST be 0.
-- "description": A detailed text description of the character's appearance (like species, build, colors), clothing, and non-held accessories. This description should also capture the character's apparent personality and the background scene. If there is text on clothing, quote it exactly. CRITICAL: Do NOT mention any items the character is holding in this description string.
+1.  "description": Create a detailed text description focusing ONLY on the character's appearance (species, build, colors), their clothing, and any non-held accessories. Also describe the background scene. If there is any text visible on clothing, quote it exactly.
+2.  "itemCount": Count the number of distinct items, tools, or weapons the character is actively holding in their hands. This must be an integer. If they are holding nothing, the value must be 0.
 
-Your entire response MUST be a valid JSON object conforming to the schema. Do not add any commentary or markdown formatting.`
+Your entire response must be a single, valid JSON object matching this structure and nothing else. No commentary or markdown formatting.`
     };
     
     const responseSchema = {
@@ -75,7 +76,7 @@ Your entire response MUST be a valid JSON object conforming to the schema. Do no
 
     const response = await ai.models.generateContent({
         model: visionModel,
-        contents: { parts: [textPart, imagePart] },
+        contents: { parts: [imagePart, textPart] },
         config: {
             responseMimeType: "application/json",
             responseSchema: responseSchema,

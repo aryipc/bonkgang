@@ -22,17 +22,15 @@ const styleNames: { [key: string]: string } = {
 
 const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, isLoading }) => {
   const renderContent = () => {
-    // During initial app load, show loading indicator.
-    if (isLoading) {
+    if (isLoading && !stats) {
       return <p className="text-center text-gray-400">Loading stats...</p>;
     }
 
-    // If loading is finished and we have stats, display them.
     if (stats) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
           {Object.entries(stats)
-            .sort(([a], [b]) => Object.keys(styleNames).indexOf(a) - Object.keys(styleNames).indexOf(b)) // Ensure consistent order
+            .sort(([a], [b]) => Object.keys(styleNames).indexOf(a) - Object.keys(styleNames).indexOf(b))
             .map(([styleId, count]) => (
               <div key={styleId} className="p-3 bg-zinc-800 rounded-md border border-amber-400/50">
                 <p className="text-amber-400 text-base sm:text-lg truncate">{styleNames[styleId] || styleId}</p>
@@ -43,8 +41,7 @@ const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, isLoading }) => {
       );
     }
     
-    // Fallback if stats are null after loading without an explicit error.
-    return <p className="text-center text-gray-400">Stats are currently unavailable.</p>;
+    return <p className="text-center text-red-400">Stats could not be loaded.</p>;
   };
 
   return (

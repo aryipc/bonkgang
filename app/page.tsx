@@ -16,7 +16,6 @@ export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
   const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
   
-  // State management refactored for clarity and robustness
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -29,8 +28,6 @@ export default function Home() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
 
-  // Moved initializeApp outside of useEffect and wrapped in useCallback
-  // to allow it to be called by the "Retry" button.
   const initializeApp = useCallback(async () => {
     setIsInitializing(true);
     setInitError(null);
@@ -119,11 +116,12 @@ export default function Home() {
       const analysisResult = await analyzeImage(inputImage);
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
       
-      // The result from the API now contains all the updated state.
-      // Set state atomically from this single source of truth.
       setGenerationResult(result);
-      setStats(result.newStats);
-      setIpStatus(result.newIpStatus);
+      // A regular run will always return new stats, so we update state.
+      if (result.newStats && result.newIpStatus) {
+        setStats(result.newStats);
+        setIpStatus(result.newIpStatus);
+      }
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -133,6 +131,35 @@ export default function Home() {
       setIsGenerating(false);
     }
   }, [inputImage, selectedStyle, ipStatus]);
+
+  const handleTestGenerate = useCallback(async () => {
+    if (!inputImage) {
+        setGenerateError("Please upload an image first for the test.");
+        return;
+    };
+
+    setIsGenerationAttempted(true);
+    setIsOutputVisible(true);
+    setIsGenerating(true);
+    setGenerateError(null);
+    setGenerationResult(null);
+
+    try {
+      const analysisResult = await analyzeImage(inputImage);
+      const result = await generateBonkImage(analysisResult.description, 'hung_hing', analysisResult.itemCount, 'dragon_staff');
+      
+      // A test run only returns the artwork. We only update the image display.
+      setGenerationResult(result);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      console.error(err);
+      setGenerateError(`Failed to generate image. ${errorMessage}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [inputImage]);
+
 
   // Dedicated loading UI for initialization phase
   if (isInitializing && !initError) {
@@ -153,7 +180,6 @@ export default function Home() {
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Header />
 
-        {/* Dedicated error UI for initialization failure */}
         {initError ? (
           <div className="w-full max-w-2xl mt-12 text-center">
             <div className="p-6 bg-red-900/50 border border-red-400 rounded-md" role="alert">
@@ -169,7 +195,6 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          /* Main application UI, rendered only on successful initialization */
           <>
             <StyleSelector 
               selectedStyle={selectedStyle}
@@ -200,11 +225,21 @@ export default function Home() {
                 />
               )}
             </main>
-            <StatsDisplay stats={stats} isLoading={isGenerating} />
+            <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
           </>
         )}
         
         <FooterLinks />
+        <div className="mt-4 text-center">
+            <button
+                onClick={handleTestGenerate}
+                disabled={isGenerating || !inputImage || isInitializing}
+                className="px-4 py-2 text-xs bg-zinc-700 text-white rounded-md hover:bg-zinc-600 transition-colors disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed"
+                title={!inputImage ? "Please upload an image to run a test" : ""}
+            >
+                (Test) Generate Hung Hing w/ Dragon Staff
+            </button>
+        </div>
         <footer className="mt-4 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
         </footer>

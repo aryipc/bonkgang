@@ -13,8 +13,8 @@ export interface IpStatus {
 
 export interface ImageGenerationResult {
   artworkUrl: string;
-  newStats: StyleStats;
-  newIpStatus: IpStatus;
+  newStats?: StyleStats;
+  newIpStatus?: IpStatus;
 }
 
 export interface ImageAnalysisResult {
@@ -60,15 +60,25 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number, testWeaponId?: string | null): Promise<ImageGenerationResult> {
   try {
-    // Note: The endpoint name is kept for simplicity as we cannot rename files.
+    const payload: {
+      prompt: string;
+      style: string;
+      itemCount: number;
+      testWeaponId?: string;
+    } = { prompt, style, itemCount };
+    
+    if (testWeaponId) {
+      payload.testWeaponId = testWeaponId;
+    }
+
     const response = await fetch('/api/generate-pokemon-card', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt, style, itemCount }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -77,14 +87,13 @@ export async function generateBonkImage(prompt: string, style: string, itemCount
     }
 
     const result: ImageGenerationResult = await response.json();
-    if (!result.artworkUrl || !result.newStats || !result.newIpStatus) {
-        throw new Error("The server response did not contain the complete generation result.");
+    if (!result.artworkUrl) {
+        throw new Error("The server response did not contain the generated artwork URL.");
     }
     return result;
   } catch (error) {
     console.error("Error calling generation service:", error);
     if (error instanceof Error) {
-        // Re-throw the error with a more user-friendly message for the UI to catch.
         throw new Error(error.message);
     }
     throw new Error("An unknown network error occurred during generation.");
