@@ -117,11 +117,8 @@ export default function Home() {
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
       
       setGenerationResult(result);
-      // A regular run will always return new stats, so we update state.
-      if (result.newStats && result.newIpStatus) {
-        setStats(result.newStats);
-        setIpStatus(result.newIpStatus);
-      }
+      setStats(result.newStats);
+      setIpStatus(result.newIpStatus);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -131,34 +128,6 @@ export default function Home() {
       setIsGenerating(false);
     }
   }, [inputImage, selectedStyle, ipStatus]);
-
-  const handleTestGenerate = useCallback(async () => {
-    if (!inputImage) {
-        setGenerateError("Please upload an image first for the test.");
-        return;
-    };
-
-    setIsGenerationAttempted(true);
-    setIsOutputVisible(true);
-    setIsGenerating(true);
-    setGenerateError(null);
-    setGenerationResult(null);
-
-    try {
-      const analysisResult = await analyzeImage(inputImage);
-      const result = await generateBonkImage(analysisResult.description, 'hung_hing', analysisResult.itemCount, 'dragon_staff');
-      
-      // A test run only returns the artwork. We only update the image display.
-      setGenerationResult(result);
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      console.error(err);
-      setGenerateError(`Failed to generate image. ${errorMessage}`);
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [inputImage]);
 
 
   // Dedicated loading UI for initialization phase
@@ -230,17 +199,7 @@ export default function Home() {
         )}
         
         <FooterLinks />
-        <div className="mt-4 text-center">
-            <button
-                onClick={handleTestGenerate}
-                disabled={isGenerating || !inputImage || isInitializing}
-                className="px-4 py-2 text-xs bg-zinc-700 text-white rounded-md hover:bg-zinc-600 transition-colors disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed"
-                title={!inputImage ? "Please upload an image to run a test" : ""}
-            >
-                (Test) Generate Hung Hing w/ Dragon Staff
-            </button>
-        </div>
-        <footer className="mt-4 text-center text-xs text-gray-400">
+        <footer className="mt-8 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
         </footer>
       </div>

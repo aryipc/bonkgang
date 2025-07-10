@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
 import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
 
-function getArtworkPrompt(style: string, characterDescription: string, itemCount: number, testWeaponId?: string): string {
+function getArtworkPrompt(style: string, characterDescription: string, itemCount: number): string {
     const baseEnding = `Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
 If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
 CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
@@ -40,8 +40,8 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
             { 
                 id: 'dragon_staff',
                 value: {
-                    single: "a powerful, dark ceremonial dragon staff or scepter, intricately carved with detailed Chinese dragon heads and scales. Its length is roughly that of a small glass bottle, with the dragon's tail forming the base of the rod.",
-                    plural: "powerful, dark ceremonial dragon staves or scepters, intricately carved with detailed Chinese dragon heads and scales. Their length is roughly that of a small glass bottle, with the dragon's tail forming the base of the rod." 
+                    single: "a powerful, dark ceremonial dragon-headed baton or short scepter, intricately carved with detailed Chinese dragon heads and scales. It is short, about the length of a police baton. The dragon's tail forms the handle.",
+                    plural: "powerful, dark ceremonial dragon-headed batons or short scepters, intricately carved with detailed Chinese dragon heads and scales. They are short, about the length of a police baton. The dragon's tail forms the handle." 
                 },
                 weight: 10
             }
@@ -60,15 +60,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
 
     const selectedWeaponSet = weapons[style as keyof typeof weapons] || weapons['og_bonkgang'];
     
-    let selectedWeaponDefinition;
-    if (testWeaponId) {
-        selectedWeaponDefinition = selectedWeaponSet.find(w => w.id === testWeaponId);
-    }
-    
-    if (!selectedWeaponDefinition) {
-        selectedWeaponDefinition = getWeightedRandomElement(selectedWeaponSet);
-    }
-
+    const selectedWeaponDefinition = getWeightedRandomElement(selectedWeaponSet);
     const randomWeapon = selectedWeaponDefinition?.value;
 
     if (randomWeapon) {
@@ -167,8 +159,7 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ message: "Invalid request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const { prompt: characterDescription, style = 'og_bonkgang', itemCount, testWeaponId } = body;
-  const isTestRun = !!testWeaponId;
+  const { prompt: characterDescription, style = 'og_bonkgang', itemCount } = body;
 
   if (!characterDescription) {
     return new Response(JSON.stringify({ message: "No prompt provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -178,40 +169,37 @@ export async function POST(request: NextRequest) {
   }
 
   // --- IP Rate Limiting & DB Reads ---
-  // These checks are skipped for a test run.
   let ipUsageData;
   let userUsage: IpUsage = { totalSubmissions: 0, submittedGangs: [] };
 
-  if (!isTestRun) {
-    try {
-        ipUsageData = await readIpUsage();
-    } catch (dbError) {
-        console.error("Failed to read IP usage DB:", dbError);
-        let message = "Service is temporarily unavailable due to a database error.";
-        if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
-            message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
-        }
-        return new Response(
-            JSON.stringify({ message }),
-            { status: 503, headers: { 'Content-Type': 'application/json' } }
-        );
-    }
+  try {
+      ipUsageData = await readIpUsage();
+  } catch (dbError) {
+      console.error("Failed to read IP usage DB:", dbError);
+      let message = "Service is temporarily unavailable due to a database error.";
+      if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
+          message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
+      }
+      return new Response(
+          JSON.stringify({ message }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+  }
 
-    userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+  userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
 
-    if (userUsage.totalSubmissions >= 2) {
-        return new Response(
-        JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
-        );
-    }
+  if (userUsage.totalSubmissions >= 2) {
+      return new Response(
+      JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+  }
 
-    if (userUsage.submittedGangs.includes(style)) {
-        return new Response(
-        JSON.stringify({ message: "You have already submitted to this gang." }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-        );
-    }
+  if (userUsage.submittedGangs.includes(style)) {
+      return new Response(
+      JSON.stringify({ message: "You have already submitted to this gang." }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
   }
 
 
@@ -228,7 +216,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const imageModel = 'imagen-3.0-generate-002';
-    const artworkPrompt = getArtworkPrompt(style, characterDescription, itemCount, testWeaponId);
+    const artworkPrompt = getArtworkPrompt(style, characterDescription, itemCount);
 
     const imageResponse = await ai.models.generateImages({
         model: imageModel,
@@ -247,15 +235,6 @@ export async function POST(request: NextRequest) {
     }
       
     const artworkUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
-    
-    // For a test run, we return immediately without writing to the DB.
-    // The response shape is different, and the client will handle it.
-    if (isTestRun) {
-        return new Response(JSON.stringify({ artworkUrl }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
       
     // --- DB Write for production runs ---
     const stats = await readStats();
