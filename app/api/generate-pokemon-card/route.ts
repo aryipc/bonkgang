@@ -1,5 +1,6 @@
 
 
+
 import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
 import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
@@ -36,14 +37,30 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
 
     const weapons: { [key: string]: WeightedWeaponList } = {
         hung_hing: [
-            { id: 'cleaver', value: { single: "a Chinese cleaver (西瓜刀)", plural: "Chinese cleavers (西瓜刀)" }, weight: 50 },
-            { 
-                id: 'bottle', 
-                value: { 
-                    single: "a broken green glass beer bottle, wielded as a weapon. It is held firmly by the neck, with the sharp, jagged glass spikes of the broken end facing outwards.",
-                    plural: "two broken green glass beer bottles, wielded as weapons. They are held firmly by their necks, with the sharp, jagged glass spikes of the broken ends facing outwards."
-                }, 
-                weight: 40 
+            { id: 'cleaver', value: { single: "a Chinese cleaver (西瓜刀)", plural: "Chinese cleavers (西瓜刀)" }, weight: 30 },
+            {
+                id: 'pipe',
+                value: {
+                    single: "a heavy, slightly bent, rusty metal pipe, held like a club",
+                    plural: "two heavy, slightly bent, rusty metal pipes, held like clubs"
+                },
+                weight: 20
+            },
+            {
+                id: 'folding_knife',
+                value: {
+                    single: "a tactical folding knife with a partially serrated blade, held open in a firm grip",
+                    plural: "two tactical folding knives with partially serrated blades, held open one in each hand"
+                },
+                weight: 20
+            },
+            {
+                id: 'axe',
+                value: {
+                    single: "a small hand axe or hatchet with a worn wooden handle",
+                    plural: "two small hand axes or hatchets with worn wooden handles"
+                },
+                weight: 20
             },
             { 
                 id: 'dragon_staff',
@@ -84,7 +101,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
         if (itemCount <= 1) {
             weaponInstruction = `The character MUST be holding ${randomWeapon.single}.`;
         } else { // 2 or more
-            weaponInstruction = `The character MUST be dual-wielding two ${randomWeapon.plural}, one in each hand.`;
+            weaponInstruction = `The character MUST be dual-wielding ${randomWeapon.plural}, one in each hand.`;
         }
     } else {
         weaponInstruction = 'The character MUST have empty hands.';
@@ -141,26 +158,32 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
 
     switch (style) {
         case 'hung_hing':
-            return `Digital art, masterpiece, gritty Hong Kong comic book style (港漫).
+            return `Masterpiece, in the high-contrast, dynamic ink wash style of a gritty Hong Kong martial arts comic (港漫).
+The artwork MUST feature heavy, expressive black ink work, dramatic chiaroscuro lighting, and a raw, edgy aesthetic.
 Create an anthropomorphic dog character.
 ${weaponInstruction}
 ${tattooInstruction}
-Style: dark, intense, dynamic ink work, dramatic shadows, reminiscent of classic triad comics and movies. Full body shot.
+Background: A chaotic, grimy Hong Kong street scene at night, possibly in the rain.
+Full body shot, dynamic action pose.
 ${baseEnding}`;
         case 'street_gang':
-            return `Digital art, masterpiece, classic American comic book style (美漫风).
+            return `Masterpiece, in the distinct style of classic 90s American comic book art (美漫风).
+The artwork MUST feature bold, clean black outlines, a palette of flat colors with minimal gradients (cel-shading), and a high-energy composition.
 Create an anthropomorphic dog character.
 ${weaponInstruction}
 ${tattooInstruction}
 ${accessoryInstruction}
-Style: bold lines, cel-shading, dynamic action pose, slightly gritty, reminiscent of 90s American comic books. Full body shot.
+Background: A gritty, urban alleyway with graffiti and urban decay.
+Full body shot, dynamic action pose.
 ${baseEnding}`;
         case 'og_bonkgang':
         default:
-            return `Digital art, masterpiece, cartoon style.
+            return `Masterpiece, in a vibrant and modern Western cartoon style, reminiscent of popular animated TV shows.
+The artwork MUST be fun and expressive, with clean lines, bright appealing colors, and a slightly mischievous attitude.
 Create an anthropomorphic dog character in the 'Bonk Gang' style.
 ${weaponInstruction}
-Style: fun, expressive, full body shot, slightly mischievous, similar to modern animated shows.
+Background: A simple, colorful, slightly abstract background that doesn't distract from the character.
+Full body shot.
 ${baseEnding}`;
     }
 }
