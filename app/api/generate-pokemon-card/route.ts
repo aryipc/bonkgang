@@ -222,27 +222,26 @@ export async function POST(request: NextRequest) {
       const artworkUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
       
       // --- Update Stats & IP Usage ---
-      try {
-        // Update stats
-        const stats = await readStats();
-        stats[style] = (stats[style] || 0) + 1;
-        await writeStats(stats);
-        
-        // Update the in-memory usage object and write it back to the file
-        userUsage.totalSubmissions += 1;
-        if (!userUsage.submittedGangs.includes(style)) {
-          userUsage.submittedGangs.push(style);
-        }
-        ipUsageData[ip] = userUsage;
-        await writeIpUsage(ipUsageData);
-
-      } catch (dbError) {
-        console.error("Failed to update stats/IP DB:", dbError);
-        // Do not block the user response for a stats error. Log it and continue.
+      // The DB write operation is critical. If it fails, the entire request should fail.
+      const stats = await readStats();
+      stats[style] = (stats[style] || 0) + 1;
+      await writeStats(stats);
+      
+      userUsage.totalSubmissions += 1;
+      if (!userUsage.submittedGangs.includes(style)) {
+        userUsage.submittedGangs.push(style);
       }
-      // --- End Update Stats ---
+      ipUsageData[ip] = userUsage;
+      await writeIpUsage(ipUsageData);
+      // --- End Update ---
 
-      return new Response(JSON.stringify({ artworkUrl }), {
+      // The successful response now includes the artwork URL AND the new state.
+      // This makes the client-side update atomic and avoids race conditions.
+      return new Response(JSON.stringify({ 
+        artworkUrl,
+        newStats: stats,
+        newIpStatus: userUsage
+      }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
       });

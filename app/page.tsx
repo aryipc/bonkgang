@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { analyzeImage, generateBonkImage, getStats, ImageGenerationResult, StyleStats } from '@/services/geminiService';
+import { analyzeImage, generateBonkImage, ImageGenerationResult, StyleStats, IpStatus } from '@/services/geminiService';
 import Header from '@/components/Header';
 import PromptInput from '@/components/PromptInput';
 import ImageDisplay from '@/components/ImageDisplay';
@@ -11,11 +11,6 @@ import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import InfoModal from '@/components/InfoModal';
 import Loader from '@/components/Loader';
-
-interface IpStatus {
-  submittedGangs: string[];
-  totalSubmissions: number;
-}
 
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
@@ -123,15 +118,12 @@ export default function Home() {
     try {
       const analysisResult = await analyzeImage(inputImage);
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
-      setGenerationResult(result);
       
-      const [statsRes, statusRes] = await Promise.all([
-          fetch('/api/stats'),
-          fetch('/api/ip-status')
-      ]);
-
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (statusRes.ok) setIpStatus(await statusRes.json());
+      // The result from the API now contains all the updated state.
+      // Set state atomically from this single source of truth.
+      setGenerationResult(result);
+      setStats(result.newStats);
+      setIpStatus(result.newIpStatus);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';

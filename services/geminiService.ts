@@ -1,18 +1,25 @@
 
 
+export interface StyleStats {
+  og_bonkgang: number;
+  hung_hing: number;
+  street_gang: number;
+}
+
+export interface IpStatus {
+  submittedGangs: string[];
+  totalSubmissions: number;
+}
+
 export interface ImageGenerationResult {
   artworkUrl: string;
+  newStats: StyleStats;
+  newIpStatus: IpStatus;
 }
 
 export interface ImageAnalysisResult {
   description: string;
   itemCount: number;
-}
-
-export interface StyleStats {
-  og_bonkgang: number;
-  hung_hing: number;
-  street_gang: number;
 }
 
 export async function getStats(): Promise<StyleStats> {
@@ -70,8 +77,8 @@ export async function generateBonkImage(prompt: string, style: string, itemCount
     }
 
     const result: ImageGenerationResult = await response.json();
-    if (!result.artworkUrl) {
-        throw new Error("The server response did not contain an artwork URL.");
+    if (!result.artworkUrl || !result.newStats || !result.newIpStatus) {
+        throw new Error("The server response did not contain the complete generation result.");
     }
     return result;
   } catch (error) {
