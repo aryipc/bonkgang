@@ -1,6 +1,7 @@
 
 
 
+
 import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
 import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
@@ -231,7 +232,7 @@ export async function POST(request: NextRequest) {
 
       if (userUsage.totalSubmissions >= 2) {
           return new Response(
-          JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
+          JSON.stringify({ message: "You can join a maximum of two gangs." }),
           { status: 429, headers: { 'Content-Type': 'application/json' } }
           );
       }

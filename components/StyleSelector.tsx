@@ -6,7 +6,7 @@ import React from 'react';
 const gangs = [
     { 
         id: 'og_bonkgang', 
-        name: 'OG bonkgang', 
+        name: 'OG BonkGang', 
         description: 'The original crew. Masters of the bat, they keep it classic and chaotic. Fun, expressive, and always ready for a bonk.' 
     },
     { 

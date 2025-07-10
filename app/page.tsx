@@ -1,5 +1,6 @@
 
 
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -130,7 +131,7 @@ export default function Home() {
       return;
     }
     if (ipStatus && ipStatus.totalSubmissions >= 2) {
-      setGenerateError("You have reached the maximum number of generations (2).");
+      setGenerateError("You can join a maximum of two gangs.");
       return;
     }
     runGeneration(selectedStyle);

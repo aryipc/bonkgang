@@ -94,7 +94,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
       {hasReachedLimit && !error && (
         <div className="mt-2 p-3 bg-zinc-800/80 border border-amber-400/50 rounded-md" role="status">
           <p className="text-center text-amber-300 text-xs sm:text-sm">
-            You have reached the maximum of 2 generations.
+            You can join a maximum of two gangs.
           </p>
         </div>
       )}

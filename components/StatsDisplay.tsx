@@ -15,7 +15,7 @@ interface StatsDisplayProps {
 }
 
 const styleNames: { [key: string]: string } = {
-  og_bonkgang: 'OG bonkgang',
+  og_bonkgang: 'OG BonkGang',
   hung_hing: 'Hung Hing',
   street_gang: 'Street Gang',
 };
