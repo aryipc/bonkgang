@@ -143,7 +143,7 @@ export default function Home() {
   }, [inputImage, selectedStyle, ipStatus]);
 
   // Dedicated loading UI for initialization phase
-  if (isInitializing) {
+  if (isInitializing && !initError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Loader />
@@ -172,7 +172,7 @@ export default function Home() {
                 disabled={isInitializing}
                 className="mt-6 px-8 py-2 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] enabled:hover:bg-amber-500 enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:bg-gray-700 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
               >
-                RETRY
+                {isInitializing ? 'RETRYING...' : 'RETRY'}
               </button>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function Home() {
                 />
               )}
             </main>
-            <StatsDisplay stats={stats} isLoading={isInitializing} />
+            <StatsDisplay stats={stats} isLoading={isGenerating} />
           </>
         )}
         
