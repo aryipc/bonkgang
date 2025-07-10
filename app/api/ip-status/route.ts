@@ -1,5 +1,4 @@
 
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { readIpUsage, type IpUsage } from '@/app/api/lib/db';
 
@@ -23,9 +22,16 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error("API route /api/ip-status failed to read DB:", error);
+        
+        let message = "Service is temporarily unavailable due to a database error.";
+        // Check for a specific configuration error message from @vercel/kv
+        if (error instanceof Error && error.message.includes('@vercel/kv: Missing required environment variable')) {
+            message = "The application is not configured correctly to connect to the database. Please contact the site administrator.";
+        }
+        
         // Return an explicit error instead of default data to prevent unexpected UI behavior.
         return NextResponse.json(
-            { message: "Service is temporarily unavailable due to a database error." },
+            { message },
             { status: 503, headers: { 'Content-Type': 'application/json' } }
         );
     }
