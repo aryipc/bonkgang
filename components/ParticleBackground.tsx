@@ -12,8 +12,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // A much more realistic baseball bat path with a distinct knob, handle, and barrel.
-        const batIconPath = new Path2D("M13,23 C12.5,24.5 11.5,24.5 11,23 C10.5,22.5 11,22 11.5,22 L12,19.5 C8,17 3,11 4,4 C4.5,0 19.5,0 20,4 C21,11 16,17 12,19.5 L12.5,22 C13,22 13.5,22.5 13,23 Z");
+        // Adjusted path: The bat head (barrel) is now slimmer, bringing the barrel-to-handle ratio closer to the requested 1.8:1 for a more realistic look.
+        const batIconPath = new Path2D("M13,23 C12.5,24.5 11.5,24.5 11,23 C10.5,22.5 11,22 11.5,22 L12,19.5 C8,17 4,11 5,4 C5,0 19,0 19,4 C20,11 16,17 12,19.5 L12.5,22 C13,22 13.5,22.5 13,23 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
