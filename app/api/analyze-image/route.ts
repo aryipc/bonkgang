@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   if (!process.env.API_KEY) {
     console.error("API_KEY environment variable is not set.");
     return new Response(
-        JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
+        JSON.stringify({ message: "API_KEY environment variable is not set. Please ensure it is configured on the server." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
