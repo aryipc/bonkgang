@@ -129,23 +129,6 @@ export default function Home() {
     }
   }, [inputImage, selectedStyle, ipStatus]);
 
-  const handleResetUsage = async () => {
-    setGenerateError(null); // Clear previous errors
-    try {
-        const response = await fetch('/api/reset-ip', { method: 'POST' });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to reset.');
-        }
-        // Success, reload the page to get the new status
-        window.location.reload();
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        // Re-using generateError state for simplicity to display reset error
-        setGenerateError(`Reset failed: ${errorMessage}`); 
-    }
-  };
-
   // Dedicated loading UI for initialization phase
   if (isInitializing && !initError) {
     return (
@@ -212,16 +195,6 @@ export default function Home() {
             </main>
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
             
-            {/* Developer Reset Button */}
-            <div className="my-6">
-                <button
-                    onClick={handleResetUsage}
-                    className="px-4 py-2 text-xs bg-zinc-800 border border-zinc-700 text-amber-300/70 rounded-md hover:bg-zinc-700 hover:text-amber-300 transition-colors"
-                    title="Resets your submission count in the database for testing purposes."
-                >
-                    Reset My Submissions (For Testing)
-                </button>
-            </div>
           </>
         )}
         

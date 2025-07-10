@@ -1,33 +1,20 @@
 
-import { NextResponse, type NextRequest } from 'next/server';
-import { readIpUsage, writeIpUsage } from '@/app/api/lib/db';
+import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export async function POST() {
+    // This endpoint was for testing purposes and has been disabled
+    // to ensure the integrity of user submission limits in production.
+    return NextResponse.json(
+        { message: "This functionality is disabled." },
+        { status: 403 } // 403 Forbidden
+    );
+}
 
-export async function POST(request: NextRequest) {
-    const ip = request.ip ?? '127.0.0.1';
-
-    try {
-        const ipUsageData = await readIpUsage();
-
-        if (ipUsageData[ip]) {
-            delete ipUsageData[ip];
-            await writeIpUsage(ipUsageData);
-            return NextResponse.json({ message: `Usage data for IP ${ip} has been reset.` });
-        } else {
-            return NextResponse.json({ message: `No usage data found for IP ${ip}. Nothing to do.` });
-        }
-    } catch (error) {
-        console.error("API route /api/reset-ip failed to modify DB:", error);
-        
-        let message = "Service is temporarily unavailable due to a database error during reset.";
-        if (error instanceof Error && error.message.includes('@vercel/kv: Missing required environment variable')) {
-            message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
-        }
-        
-        return NextResponse.json(
-            { message },
-            { status: 503, headers: { 'Content-Type': 'application/json' } }
-        );
-    }
+// The GET method can be removed or disabled as well if it exists,
+// but for this endpoint, only POST was used for the reset action.
+export async function GET() {
+    return NextResponse.json(
+        { message: "This functionality is disabled." },
+        { status: 403 }
+    );
 }
