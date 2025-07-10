@@ -1,6 +1,7 @@
 
 import React from "react";
 import "./globals.css";
+import ParticleBackground from "@/components/ParticleBackground";
 
 export const metadata = {
   title: "LetsBonkGang Official Register",
@@ -20,7 +21,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        <ParticleBackground />
+        {children}
+      </body>
     </html>
   );
 }
