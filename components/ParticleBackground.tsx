@@ -12,8 +12,9 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // A more realistic and detailed path for the baseball bat, featuring a proper taper and knob.
-        const batIconPath = new Path2D("M7.5,2 A4.5 4.5 0 0 1 16.5,2 C16.5,15 15,25 14.5,28 L15,29.5 A3 1.5 0 1 1 9,29.5 L9.5,28 C9,25 7.5,15 7.5,2 Z");
+        // A highly refined, realistic baseball bat path based on user reference.
+        // This path has a gradual taper and proportional barrel/handle/knob.
+        const batIconPath = new Path2D("M9.5,2C10.5,1.5,13.5,1.5,14.5,2C15.5,6,14.5,15,12,28L12,29c0.5,1.5,1.5,2.5,0,3c-1.5,0.5-2.5-0.5-2-2L8,28C5.5,15,4.5,6,9.5,2Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
@@ -52,11 +53,11 @@ const ParticleBackground: React.FC = () => {
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation * Math.PI / 180);
                 
-                // Adjust scale to compensate for the new path's dimensions, keeping apparent size consistent.
-                const scale = this.size / 4; 
+                // Scale is adjusted for the new, larger base size of the particles.
+                const scale = this.size / 5; 
                 ctx.scale(scale, scale);
-                // Center the new, taller path on the particle's origin (0,0) before drawing.
-                ctx.translate(-12, -16);
+                // Center the new path's coordinates (origin is ~10, 17)
+                ctx.translate(-10, -17); 
                 
                 ctx.fillStyle = this.color;
                 ctx.fill(batIconPath);
@@ -70,8 +71,8 @@ const ParticleBackground: React.FC = () => {
             let numberOfParticles = (canvas.height * canvas.width) / 12000;
             if (numberOfParticles > 100) numberOfParticles = 100; // Cap particles for performance
             for (let i = 0; i < numberOfParticles; i++) {
-                // Base size for the particles.
-                let size = (Math.random() * 5) + 5; 
+                // Increased size for better visibility of the new detailed shape.
+                let size = (Math.random() * 5) + 8; 
                 let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * 0.4) - 0.2;
