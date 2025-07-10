@@ -65,7 +65,7 @@ export default function Home() {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
         console.error("Initialization failed:", err);
-        setInitError(`Service is temporarily unavailable. ${errorMessage}`);
+        setInitError(errorMessage);
       } finally {
         setIsInitializing(false);
       }
