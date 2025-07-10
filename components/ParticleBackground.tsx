@@ -12,6 +12,9 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // A Path2D object for a filled baseball bat icon. Dimensions are based on a 24x24 viewbox.
+        const batIconPath = new Path2D("M21.41,2.59l-2-2a1,1,0,0,0-1.41,0L1.59,17A1,1,0,0,0,2,18.41l2,2a1,1,0,0,0,1.41,0L22.41,4A1,1,0,0,0,21.41,2.59ZM5,19,3,17l3-3,2,2Zm13-9-2-2,3-3,2,2Z");
+
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
 
@@ -29,6 +32,8 @@ const ParticleBackground: React.FC = () => {
             directionY: number;
             size: number;
             color: string;
+            rotation: number;
+            rotationSpeed: number;
 
             constructor(x: number, y: number, directionX: number, directionY: number, size: number, color: string) {
                 this.x = x;
@@ -37,21 +42,34 @@ const ParticleBackground: React.FC = () => {
                 this.directionY = directionY;
                 this.size = size;
                 this.color = color;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 1.5;
             }
 
             draw() {
                 if (!ctx) return;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                
+                // Scale the 24x24 bat path to an appropriate size.
+                // this.size is a value from 1 to 3, scaling it by /8 makes it visually distinct.
+                const scale = this.size / 8;
+                ctx.scale(scale, scale);
+                // Center the path on the particle's origin (0,0) before drawing.
+                ctx.translate(-12, -12);
+                
                 ctx.fillStyle = this.color;
-                ctx.fill();
+                ctx.fill(batIconPath);
+                ctx.restore();
             }
         }
 
         const init = () => {
             particlesArray = [];
-            let numberOfParticles = (canvas.height * canvas.width) / 9000;
-            if (numberOfParticles > 150) numberOfParticles = 150; // Cap particles for performance
+            // Rendering paths is more intensive, so we reduce the particle count slightly.
+            let numberOfParticles = (canvas.height * canvas.width) / 11000;
+            if (numberOfParticles > 130) numberOfParticles = 130; // Cap particles for performance
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 2) + 1;
                 let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
@@ -75,6 +93,7 @@ const ParticleBackground: React.FC = () => {
 
                 particlesArray[i].x += particlesArray[i].directionX;
                 particlesArray[i].y += particlesArray[i].directionY;
+                particlesArray[i].rotation += particlesArray[i].rotationSpeed; // Update rotation for spinning effect
             }
         };
         
