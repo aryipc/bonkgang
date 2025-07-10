@@ -22,13 +22,13 @@ const gangs = [
 ];
 
 interface StyleSelectorProps {
-    selectedStyle: string;
-    setSelectedStyle: (style: string) => void;
+    selectedStyle: string | null;
+    onStyleSelect: (style: string) => void;
     isLoading: boolean;
     submittedGangs: string[];
 }
 
-const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelectedStyle, isLoading, submittedGangs }) => {
+const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSelect, isLoading, submittedGangs }) => {
     const selectedGang = gangs.find(g => g.id === selectedStyle);
     
     return (
@@ -42,7 +42,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelecte
                             key={gang.id}
                             role="radio"
                             aria-checked={selectedStyle === gang.id}
-                            onClick={() => setSelectedStyle(gang.id)}
+                            onClick={() => onStyleSelect(gang.id)}
                             disabled={isLoading || isSubmitted}
                             className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 ${
                                 isSubmitted

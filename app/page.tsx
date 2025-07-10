@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -9,6 +8,7 @@ import ImageDisplay from '@/components/ImageDisplay';
 import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
+import InfoModal from '@/components/InfoModal';
 
 interface IpStatus {
   submittedGangs: string[];
@@ -20,10 +20,11 @@ export default function Home() {
   const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState<string>('og_bonkgang');
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [stats, setStats] = useState<StyleStats | null>(null);
   const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
   const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -32,7 +33,7 @@ export default function Home() {
     } catch (error) {
       console.error("UI failed to fetch stats", error);
     }
-  }, []);
+  }, [setStats]);
 
   useEffect(() => {
     const fetchIpStatus = async () => {
@@ -61,11 +62,25 @@ export default function Home() {
     setError(null);
   };
 
+  const handleStyleSelect = (style: string) => {
+    const hasShownInfo = sessionStorage.getItem('hasShownGangInfo') === 'true';
+    if (!hasShownInfo) {
+      setIsInfoModalOpen(true);
+      sessionStorage.setItem('hasShownGangInfo', 'true');
+    }
+    setSelectedStyle(style);
+  };
+
   const handleGenerate = useCallback(async () => {
     if (!inputImage) {
         setError("Please upload an image first.");
         return;
     };
+
+    if (!selectedStyle) {
+        setError("Please choose a gang first.");
+        return;
+    }
 
     if (ipStatus && ipStatus.totalSubmissions >= 2) {
       setError("You have reached the maximum number of generations (2).");
@@ -99,15 +114,20 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputImage, selectedStyle, fetchStats, ipStatus]);
+  }, [inputImage, selectedStyle, fetchStats, ipStatus, setIpStatus, setError, setGenerationResult, setIsLoading, setIsOutputVisible]);
 
   return (
     <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+       <InfoModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        message="你最多只可以加入两个gang，加入过的gang就不能再加入。"
+      />
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Header />
         <StyleSelector 
           selectedStyle={selectedStyle}
-          setSelectedStyle={setSelectedStyle}
+          onStyleSelect={handleStyleSelect}
           isLoading={isLoading || !ipStatus}
           submittedGangs={ipStatus?.submittedGangs ?? []}
         />
@@ -121,6 +141,7 @@ export default function Home() {
                   inputImage={inputImage}
                   setInputImage={handleSetInputImage}
                   totalSubmissions={ipStatus?.totalSubmissions ?? 0}
+                  selectedStyle={selectedStyle}
                 />
               </div>
           </div>
