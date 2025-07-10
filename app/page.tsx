@@ -26,6 +26,7 @@ export default function Home() {
   const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
   const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -61,6 +62,12 @@ export default function Home() {
     setInputImage(file);
     setGenerationResult(null);
     setError(null);
+    // Reset generation attempt flag to allow a new submission,
+    // but only if the user has not already reached the limit of 2.
+    // This makes the submit button lock permanent once the limit is hit.
+    if ((ipStatus?.totalSubmissions ?? 0) < 2) {
+      setIsGenerationAttempted(false);
+    }
   };
 
   const handleStyleSelect = (style: string) => {
@@ -70,6 +77,12 @@ export default function Home() {
       sessionStorage.setItem('hasShownGangInfo', 'true');
     }
     setSelectedStyle(style);
+    // Reset generation attempt flag to allow a new submission,
+    // but only if the user has not already reached the limit of 2.
+    // This makes the submit button lock permanent once the limit is hit.
+    if ((ipStatus?.totalSubmissions ?? 0) < 2) {
+      setIsGenerationAttempted(false);
+    }
   };
 
   const handleGenerate = useCallback(async () => {
@@ -88,6 +101,7 @@ export default function Home() {
       return;
     }
 
+    setIsGenerationAttempted(true); // Disable button immediately
     setIsOutputVisible(true);
     setIsLoading(true);
     setError(null);
@@ -154,6 +168,7 @@ export default function Home() {
                   setInputImage={handleSetInputImage}
                   totalSubmissions={ipStatus?.totalSubmissions ?? 0}
                   selectedStyle={selectedStyle}
+                  isGenerationAttempted={isGenerationAttempted}
                 />
               </div>
           </div>

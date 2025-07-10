@@ -138,7 +138,7 @@ ${baseEnding}`;
 
 // The route is POST /api/generate-pokemon-card, but its function is to generate a Bonk Gang image from a prompt.
 export async function POST(request: NextRequest) {
-  // 1. Extract body and IP first for rate limiting
+  // 1. Extract body and IP
   const ip = request.ip ?? '127.0.0.1';
   let body;
   try {
@@ -156,29 +156,31 @@ export async function POST(request: NextRequest) {
       return new Response(JSON.stringify({ message: "Item count not provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  // 2. IP Rate Limiting Check
+  // 2. IP Rate Limiting: Read usage data once and perform checks.
+  let ipUsageData;
   try {
-    const ipUsageData = await readIpUsage();
-    const userUsage: IpUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
-
-    if (userUsage.totalSubmissions >= 2) {
-      return new Response(
-        JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (userUsage.submittedGangs.includes(style)) {
-      return new Response(
-        JSON.stringify({ message: "You have already submitted to this gang." }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    ipUsageData = await readIpUsage();
   } catch (dbError) {
-    console.error("Failed to check IP usage DB:", dbError);
+    console.error("Failed to read IP usage DB:", dbError);
     return new Response(
         JSON.stringify({ message: "Service is temporarily unavailable due to a database error." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const userUsage: IpUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+
+  if (userUsage.totalSubmissions >= 2) {
+    return new Response(
+      JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (userUsage.submittedGangs.includes(style)) {
+    return new Response(
+      JSON.stringify({ message: "You have already submitted to this gang." }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
@@ -222,9 +224,7 @@ export async function POST(request: NextRequest) {
         stats[style] = (stats[style] || 0) + 1;
         await writeStats(stats);
         
-        // Update IP usage
-        const ipUsageData = await readIpUsage();
-        const userUsage: IpUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+        // Update the in-memory usage object and write it back to the file
         userUsage.totalSubmissions += 1;
         if (!userUsage.submittedGangs.includes(style)) {
           userUsage.submittedGangs.push(style);

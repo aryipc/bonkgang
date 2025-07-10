@@ -1,6 +1,4 @@
-
-import { promises as fs } from 'fs';
-import path from 'path';
+import { kv } from '@vercel/kv';
 
 // --- Type Definitions ---
 export type Stats = {
@@ -17,35 +15,22 @@ export type IpUsageData = {
 };
 
 
-// --- File Paths ---
-const statsDbPath = path.join('/tmp', 'db.json');
-const ipUsageDbPath = path.join('/tmp', 'ip_usage.json');
+// --- DB Keys ---
+const STATS_KEY = 'bonk_gang_stats';
+const IP_USAGE_KEY = 'bonk_gang_ip_usage';
 
 
 // --- Stats DB Functions ---
 const defaultStats: Stats = { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
 
 export async function readStats(): Promise<Stats> {
-    try {
-        await fs.access(statsDbPath);
-        const data = await fs.readFile(statsDbPath, 'utf8');
-        // Ensure the parsed data is not null and is an object
-        const parsedData = JSON.parse(data);
-        if (parsedData && typeof parsedData === 'object') {
-            return parsedData;
-        }
-        // Fallback if file content is invalid
-        await writeStats(defaultStats);
-        return defaultStats;
-    } catch (error) {
-        // This handles file not existing or other read errors
-        await writeStats(defaultStats);
-        return defaultStats;
-    }
+    const stats = await kv.get<Stats>(STATS_KEY);
+    // If stats don't exist in KV, return the default structure.
+    return stats ?? defaultStats;
 }
 
 export async function writeStats(stats: Stats): Promise<void> {
-    await fs.writeFile(statsDbPath, JSON.stringify(stats, null, 2), 'utf8');
+    await kv.set(STATS_KEY, stats);
 }
 
 
@@ -53,21 +38,11 @@ export async function writeStats(stats: Stats): Promise<void> {
 const defaultIpUsageData: IpUsageData = {};
 
 export async function readIpUsage(): Promise<IpUsageData> {
-    try {
-        await fs.access(ipUsageDbPath);
-        const data = await fs.readFile(ipUsageDbPath, 'utf8');
-        const parsedData = JSON.parse(data);
-        if (parsedData && typeof parsedData === 'object') {
-            return parsedData;
-        }
-        await writeIpUsage(defaultIpUsageData);
-        return defaultIpUsageData;
-    } catch (error) {
-        await writeIpUsage(defaultIpUsageData);
-        return defaultIpUsageData;
-    }
+    const data = await kv.get<IpUsageData>(IP_USAGE_KEY);
+    // If IP usage data doesn't exist, return an empty object.
+    return data ?? defaultIpUsageData;
 }
 
 export async function writeIpUsage(data: IpUsageData): Promise<void> {
-    await fs.writeFile(ipUsageDbPath, JSON.stringify(data, null, 2), 'utf8');
+    await kv.set(IP_USAGE_KEY, data);
 }
