@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -24,7 +23,7 @@ const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats }) => {
     <div className="w-full max-w-3xl mt-12">
       <div className="p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg">
         <h2 className="text-xl text-center text-amber-400 mb-4">
-          Generation Stats
+          Member Stats
         </h2>
         {stats ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">

@@ -57,11 +57,11 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
       <label 
         onDrop={onDrop}
         onDragOver={onDragOver}
-        className="w-full aspect-square bg-zinc-950 border-2 border-dashed border-amber-400 rounded-md flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
+        className="w-full aspect-square bg-zinc-950 border-2 border-amber-400 rounded-lg flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
       >
         <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={onFileChange} disabled={isLoading} />
         {previewUrl ? (
-          <img src={previewUrl} alt="Input preview" className="max-w-full max-h-full object-contain rounded-sm" />
+          <img src={previewUrl} alt="Input preview" className="max-w-full max-h-full object-contain rounded-lg" />
         ) : (
           <div className="text-gray-400 flex flex-col items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

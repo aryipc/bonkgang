@@ -1,12 +1,21 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Helper to convert a file to a GoogleGenerativeAI.Part object.
 async function fileToGenerativePart(file: File) {
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const arrayBuffer = await file.arrayBuffer();
+    // When running in an environment where 'Buffer' is not available (like some edge runtimes),
+    // we need an alternative way to convert the file to a base64 string.
+    // The `btoa` function is a standard way to do this.
+    // First, we convert the ArrayBuffer to a binary string.
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binaryString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i]);
+    }
+    
     return {
         inlineData: {
-            data: buffer.toString("base64"),
+            data: btoa(binaryString),
             mimeType: file.type,
         },
     };

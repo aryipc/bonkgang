@@ -42,7 +42,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelecte
                         disabled={isLoading}
                         className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed ${
                             selectedStyle === gang.id 
-                                ? 'bg-amber-400 border-black text-black font-bold shadow-[3px_3px_0px_#000]'
+                                ? 'bg-amber-400 border-black text-black font-bold shadow-[4px_4px_0px_#000] active:translate-y-1 active:translate-x-1 active:shadow-none'
                                 : 'bg-zinc-800 border-zinc-700 text-gray-300 hover:bg-zinc-700 hover:border-zinc-600 active:scale-95'
                         }`}
                     >
