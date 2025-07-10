@@ -50,14 +50,14 @@ export async function POST(request: Request) {
   // 3. Run the AI analysis logic
   try {
     const imagePart = await fileToGenerativePart(imageFile);
-
-    // A more robust vision prompt to generate a character description from the image.
-    const visionPrompt = `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
+    const textPart = {
+        text: `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
 
 - "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this value MUST be 0.
 - "description": A detailed text description of the character's appearance (like species, build, colors), clothing, and non-held accessories. This description should also capture the character's apparent personality and the background scene. If there is text on clothing, quote it exactly. CRITICAL: Do NOT mention any items the character is holding in this description string.
 
-Your entire response MUST be a valid JSON object conforming to the schema. Do not add any commentary or markdown formatting.`;
+Your entire response MUST be a valid JSON object conforming to the schema. Do not add any commentary or markdown formatting.`
+    };
     
     const responseSchema = {
         type: Type.OBJECT,
@@ -75,10 +75,7 @@ Your entire response MUST be a valid JSON object conforming to the schema. Do no
 
     const response = await ai.models.generateContent({
         model: visionModel,
-        contents: [
-            { text: visionPrompt },
-            imagePart,
-        ],
+        contents: { parts: [textPart, imagePart] },
         config: {
             responseMimeType: "application/json",
             responseSchema: responseSchema,
