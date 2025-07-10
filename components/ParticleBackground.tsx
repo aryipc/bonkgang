@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from 'react';
@@ -12,8 +13,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Final final refinement: A flatter knob at the end of the handle.
-        const batIconPath = new Path2D("M 4,4 Q 10,0, 16,4 C 15,15, 13,30, 12,40 C 13,41, 13,43, 12.5,44 L 7.5,44 C 7,43, 7,41, 8,40 C 7,30, 5,15, 4,4 Z");
+        // Final refinement: A flatter, curved knob at the end of the handle.
+        const batIconPath = new Path2D("M 4,4 Q 10,0, 16,4 C 15,15, 13,30, 12,40 C 13,41, 13,42, 12.5,43 Q 10,43.5, 7.5,43 C 7,42, 7,41, 8,40 C 7,30, 5,15, 4,4 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
