@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -9,6 +10,11 @@ import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
 
+interface IpStatus {
+  submittedGangs: string[];
+  totalSubmissions: number;
+}
+
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
   const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
@@ -17,6 +23,7 @@ export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<string>('og_bonkgang');
   const [stats, setStats] = useState<StyleStats | null>(null);
   const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
+  const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -28,6 +35,23 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const fetchIpStatus = async () => {
+        try {
+            const response = await fetch('/api/ip-status');
+            if (!response.ok) {
+                console.error('Failed to fetch IP status:', response.statusText);
+                setIpStatus({ submittedGangs: [], totalSubmissions: 0 }); // Use a default on error
+                return;
+            }
+            const data = await response.json();
+            setIpStatus(data);
+        } catch (error) {
+            console.error("UI failed to fetch IP status", error);
+            setIpStatus({ submittedGangs: [], totalSubmissions: 0 }); // Use a default on error
+        }
+    };
+    
+    fetchIpStatus();
     fetchStats();
   }, [fetchStats]);
 
@@ -43,6 +67,11 @@ export default function Home() {
         return;
     };
 
+    if (ipStatus && ipStatus.totalSubmissions >= 2) {
+      setError("You have reached the maximum number of generations (2).");
+      return;
+    }
+
     setIsOutputVisible(true);
     setIsLoading(true);
     setError(null);
@@ -56,8 +85,13 @@ export default function Home() {
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
       setGenerationResult(result);
       
-      // Step 3: Refresh stats after a successful generation.
+      // Step 3: Refresh stats and IP status after a successful generation.
       fetchStats();
+      const statusRes = await fetch('/api/ip-status');
+      if (statusRes.ok) {
+        setIpStatus(await statusRes.json());
+      }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       console.error(err);
@@ -65,7 +99,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputImage, selectedStyle, fetchStats]);
+  }, [inputImage, selectedStyle, fetchStats, ipStatus]);
 
   return (
     <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
@@ -74,17 +108,19 @@ export default function Home() {
         <StyleSelector 
           selectedStyle={selectedStyle}
           setSelectedStyle={setSelectedStyle}
-          isLoading={isLoading}
+          isLoading={isLoading || !ipStatus}
+          submittedGangs={ipStatus?.submittedGangs ?? []}
         />
         <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
               <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
                 <PromptInput
                   onGenerate={handleGenerate}
-                  isLoading={isLoading}
+                  isLoading={isLoading || !ipStatus}
                   error={error}
                   inputImage={inputImage}
                   setInputImage={handleSetInputImage}
+                  totalSubmissions={ipStatus?.totalSubmissions ?? 0}
                 />
               </div>
           </div>

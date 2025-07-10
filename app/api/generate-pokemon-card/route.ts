@@ -1,33 +1,7 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { promises as fs } from 'fs';
-import path from 'path';
-
-// --- Database Functions ---
-const dbPath = path.join('/tmp', 'db.json');
-
-type Stats = {
-    [key: string]: number;
-};
-
-async function readStats(): Promise<Stats> {
-    try {
-        await fs.access(dbPath); // Check if file exists
-        const data = await fs.readFile(dbPath, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        // If file doesn't exist or is invalid, return default stats and create it
-        const defaultStats: Stats = { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
-        await writeStats(defaultStats);
-        return defaultStats;
-    }
-}
-
-async function writeStats(stats: Stats): Promise<void> {
-    await fs.writeFile(dbPath, JSON.stringify(stats, null, 2), 'utf8');
-}
-// --- End Database Functions ---
-
+import { type NextRequest } from "next/server";
+import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
 
 function getArtworkPrompt(style: string, characterDescription: string, itemCount: number): string {
     const baseEnding = `Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
@@ -163,8 +137,52 @@ ${baseEnding}`;
 
 
 // The route is POST /api/generate-pokemon-card, but its function is to generate a Bonk Gang image from a prompt.
-export async function POST(request: Request) {
-  // 1. Check for API Key
+export async function POST(request: NextRequest) {
+  // 1. Extract body and IP first for rate limiting
+  const ip = request.ip ?? '127.0.0.1';
+  let body;
+  try {
+      body = await request.json();
+  } catch (error) {
+      return new Response(JSON.stringify({ message: "Invalid request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  const { prompt: characterDescription, style = 'og_bonkgang', itemCount } = body;
+  
+  if (!characterDescription) {
+    return new Response(JSON.stringify({ message: "No prompt provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (itemCount === undefined) {
+      return new Response(JSON.stringify({ message: "Item count not provided in the request body." }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // 2. IP Rate Limiting Check
+  try {
+    const ipUsageData = await readIpUsage();
+    const userUsage: IpUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+
+    if (userUsage.totalSubmissions >= 2) {
+      return new Response(
+        JSON.stringify({ message: "You have reached the maximum number of generations (2)." }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (userUsage.submittedGangs.includes(style)) {
+      return new Response(
+        JSON.stringify({ message: "You have already submitted to this gang." }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  } catch (dbError) {
+    console.error("Failed to check IP usage DB:", dbError);
+    return new Response(
+        JSON.stringify({ message: "Service is temporarily unavailable due to a database error." }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // 3. Check for API Key
   if (!process.env.API_KEY) {
     console.error("API_KEY environment variable is not set.");
     return new Response(
@@ -175,29 +193,7 @@ export async function POST(request: Request) {
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // 2. Extract prompt, style, and itemCount from the request
-  let characterDescription: string;
-  let style: string;
-  let itemCount: number;
-
-  try {
-    const body = await request.json();
-    if (!body.prompt) {
-        throw new Error("No prompt provided in the request body.");
-    }
-    if (body.itemCount === undefined) {
-        throw new Error("Item count not provided in the request body.")
-    }
-    characterDescription = body.prompt;
-    style = body.style || 'og_bonkgang'; // Default to og_bonkgang
-    itemCount = body.itemCount;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid request body.";
-    return new Response(JSON.stringify({ message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-  }
-
-
-  // 3. Run the AI generation logic
+  // 4. Run the AI generation logic
   try {
     const imageModel = 'imagen-3.0-generate-002';
     
@@ -219,13 +215,25 @@ export async function POST(request: Request) {
     if (base64ImageBytes) {
       const artworkUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
       
-      // --- Update Stats ---
+      // --- Update Stats & IP Usage ---
       try {
+        // Update stats
         const stats = await readStats();
         stats[style] = (stats[style] || 0) + 1;
         await writeStats(stats);
+        
+        // Update IP usage
+        const ipUsageData = await readIpUsage();
+        const userUsage: IpUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
+        userUsage.totalSubmissions += 1;
+        if (!userUsage.submittedGangs.includes(style)) {
+          userUsage.submittedGangs.push(style);
+        }
+        ipUsageData[ip] = userUsage;
+        await writeIpUsage(ipUsageData);
+
       } catch (dbError) {
-        console.error("Failed to update stats DB:", dbError);
+        console.error("Failed to update stats/IP DB:", dbError);
         // Do not block the user response for a stats error. Log it and continue.
       }
       // --- End Update Stats ---

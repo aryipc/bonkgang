@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -24,31 +25,37 @@ interface StyleSelectorProps {
     selectedStyle: string;
     setSelectedStyle: (style: string) => void;
     isLoading: boolean;
+    submittedGangs: string[];
 }
 
-const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelectedStyle, isLoading }) => {
+const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelectedStyle, isLoading, submittedGangs }) => {
     const selectedGang = gangs.find(g => g.id === selectedStyle);
     
     return (
         <div className="w-full max-w-lg flex flex-col items-center gap-3 my-6" role="radiogroup" aria-labelledby="gang-label">
             <h2 id="gang-label" className="text-xl text-center text-amber-400">Choose a Gang</h2>
             <div className="grid grid-cols-3 gap-4 w-full">
-                {gangs.map(gang => (
-                    <button
-                        key={gang.id}
-                        role="radio"
-                        aria-checked={selectedStyle === gang.id}
-                        onClick={() => setSelectedStyle(gang.id)}
-                        disabled={isLoading}
-                        className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            selectedStyle === gang.id 
-                                ? 'bg-amber-400 border-black text-black font-bold shadow-[4px_4px_0px_#000] active:translate-y-1 active:translate-x-1 active:shadow-none'
-                                : 'bg-zinc-800 border-zinc-700 text-gray-300 hover:bg-zinc-700 hover:border-zinc-600 active:scale-95'
-                        }`}
-                    >
-                        {gang.name}
-                    </button>
-                ))}
+                {gangs.map(gang => {
+                    const isSubmitted = submittedGangs.includes(gang.id);
+                    return (
+                        <button
+                            key={gang.id}
+                            role="radio"
+                            aria-checked={selectedStyle === gang.id}
+                            onClick={() => setSelectedStyle(gang.id)}
+                            disabled={isLoading || isSubmitted}
+                            className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 ${
+                                isSubmitted
+                                    ? 'bg-zinc-700 border-zinc-600 text-gray-500 cursor-not-allowed'
+                                : selectedStyle === gang.id 
+                                    ? 'bg-amber-400 border-black text-black font-bold shadow-[4px_4px_0px_#000]'
+                                    : 'bg-zinc-800 border-zinc-700 text-gray-300 hover:bg-zinc-700 hover:border-zinc-600'
+                            } enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:opacity-70`}
+                        >
+                            {gang.name}
+                        </button>
+                    )
+                })}
             </div>
             {selectedGang && (
                 <div

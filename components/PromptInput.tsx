@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useCallback, useState, useEffect } from 'react';
@@ -8,10 +9,12 @@ interface PromptInputProps {
   error: string | null;
   inputImage: File | null;
   setInputImage: (file: File | null) => void;
+  totalSubmissions: number;
 }
 
-const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error, inputImage, setInputImage }) => {
+const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error, inputImage, setInputImage, totalSubmissions }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const hasReachedLimit = totalSubmissions >= 2;
 
   useEffect(() => {
     if (inputImage) {
@@ -46,7 +49,8 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
   };
 
   const getButtonText = () => {
-      if (isLoading) return 'SUBMITTING...';
+      if (hasReachedLimit) return 'LIMIT REACHED';
+      if (isLoading) return 'LOADING...';
       return 'SUBMIT';
   }
 
@@ -59,7 +63,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
         onDragOver={onDragOver}
         className="w-full aspect-square bg-zinc-950 border-2 border-amber-400 rounded-lg flex items-center justify-center text-center p-2 cursor-pointer hover:bg-zinc-900 transition-colors"
       >
-        <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={onFileChange} disabled={isLoading} />
+        <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={onFileChange} disabled={isLoading || hasReachedLimit} />
         {previewUrl ? (
           <img src={previewUrl} alt="Input preview" className="max-w-full max-h-full object-contain rounded-lg" />
         ) : (
@@ -74,7 +78,7 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
 
       <button
         onClick={onGenerate}
-        disabled={isLoading || !inputImage}
+        disabled={isLoading || !inputImage || hasReachedLimit}
         className="w-full mt-auto px-4 py-3 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] enabled:hover:bg-amber-500 enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:bg-gray-700 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
       >
         {getButtonText()}
@@ -83,6 +87,13 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
         <div className="mt-2 p-3 bg-red-900/50 border border-red-400 rounded-md" role="alert">
           <p className="text-center text-red-300 text-xs sm:text-sm">
             {error}
+          </p>
+        </div>
+      )}
+      {hasReachedLimit && !error && (
+        <div className="mt-2 p-3 bg-zinc-800/80 border border-amber-400/50 rounded-md" role="status">
+          <p className="text-center text-amber-300 text-xs sm:text-sm">
+            You have reached the maximum of 2 generations.
           </p>
         </div>
       )}
