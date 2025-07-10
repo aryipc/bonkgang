@@ -2,6 +2,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readIpUsage, type IpUsage } from '@/app/api/lib/db';
 
+export const dynamic = 'force-dynamic'; // Ensures the route is always executed dynamically.
+
 const defaultUsage: IpUsage = {
     totalSubmissions: 0,
     submittedGangs: [],

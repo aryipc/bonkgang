@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { readStats } from '@/app/api/lib/db';
 
+export const dynamic = 'force-dynamic'; // Ensures the route is always executed dynamically.
+
 const defaultStats = { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
 
 export async function GET() {

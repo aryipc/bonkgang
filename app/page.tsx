@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -33,7 +34,7 @@ export default function Home() {
     } catch (error) {
       console.error("UI failed to fetch stats", error);
     }
-  }, [setStats]);
+  }, []);
 
   useEffect(() => {
     const fetchIpStatus = async () => {
@@ -100,11 +101,22 @@ export default function Home() {
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
       setGenerationResult(result);
       
-      // Step 3: Refresh stats and IP status after a successful generation.
-      fetchStats();
-      const statusRes = await fetch('/api/ip-status');
+      // Step 3: Refresh stats and IP status in parallel after a successful generation.
+      const [statsRes, statusRes] = await Promise.all([
+          fetch('/api/stats'),
+          fetch('/api/ip-status')
+      ]);
+
+      if (statsRes.ok) {
+          setStats(await statsRes.json());
+      } else {
+          console.error('Failed to refresh stats after generation.');
+      }
+
       if (statusRes.ok) {
         setIpStatus(await statusRes.json());
+      } else {
+        console.error('Failed to refresh IP status after generation.');
       }
 
     } catch (err) {
@@ -114,7 +126,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputImage, selectedStyle, fetchStats, ipStatus, setIpStatus, setError, setGenerationResult, setIsLoading, setIsOutputVisible]);
+  }, [inputImage, selectedStyle, ipStatus]);
 
   return (
     <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
