@@ -53,8 +53,8 @@ const ParticleBackground: React.FC = () => {
                 ctx.rotate(this.rotation * Math.PI / 180);
                 
                 // Scale the 24x24 bat path to an appropriate size.
-                // this.size is a value from 1 to 3, scaling it by /8 makes it visually distinct.
-                const scale = this.size / 8;
+                // this.size is a value from 1.5 to 4, scaling it by /6 makes it larger and more visible.
+                const scale = this.size / 6;
                 ctx.scale(scale, scale);
                 // Center the path on the particle's origin (0,0) before drawing.
                 ctx.translate(-12, -12);
@@ -71,7 +71,7 @@ const ParticleBackground: React.FC = () => {
             let numberOfParticles = (canvas.height * canvas.width) / 11000;
             if (numberOfParticles > 130) numberOfParticles = 130; // Cap particles for performance
             for (let i = 0; i < numberOfParticles; i++) {
-                let size = (Math.random() * 2) + 1;
+                let size = (Math.random() * 2.5) + 1.5; // Increased size range for larger bats
                 let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * 0.4) - 0.2;
@@ -103,9 +103,8 @@ const ParticleBackground: React.FC = () => {
             }
         };
 
-        const drawConnectionsAndGlows = () => {
+        const drawGlows = () => {
             if (!ctx) return;
-            const connectDistance = (canvas.width / 7) * (canvas.height / 7);
             const collisionDistance = 1500; // Squared distance for collision glow
             const glowRadius = 25;
 
@@ -129,19 +128,6 @@ const ParticleBackground: React.FC = () => {
                         ctx.arc(midX, midY, glowRadius, 0, Math.PI * 2);
                         ctx.fill();
                     }
-
-                    // Connection Lines
-                    if (distance < connectDistance) {
-                        const opacityValue = 1 - (distance / 20000);
-                        if (opacityValue > 0) {
-                            ctx.strokeStyle = `rgba(251, 191, 36, ${opacityValue * 0.5})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.beginPath();
-                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                            ctx.stroke();
-                        }
-                    }
                 }
             }
         };
@@ -151,7 +137,7 @@ const ParticleBackground: React.FC = () => {
             if (!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             updateParticles();
-            drawConnectionsAndGlows(); // Draw glows and lines first (underneath)
+            drawGlows(); // Draw glows first (underneath)
             drawParticles(); // Draw particles on top
             animationFrameId = requestAnimationFrame(animate);
         };
