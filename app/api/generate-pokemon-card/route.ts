@@ -162,8 +162,12 @@ export async function POST(request: NextRequest) {
     ipUsageData = await readIpUsage();
   } catch (dbError) {
     console.error("Failed to read IP usage DB:", dbError);
+    let message = "Service is temporarily unavailable due to a database error.";
+    if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
+        message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
+    }
     return new Response(
-        JSON.stringify({ message: "Service is temporarily unavailable due to a database error." }),
+        JSON.stringify({ message }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }

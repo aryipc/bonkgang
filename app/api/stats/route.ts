@@ -14,7 +14,7 @@ export async function GET() {
          let message = "Service is temporarily unavailable due to a database error.";
          // Check for a specific configuration error message from @vercel/kv
          if (error instanceof Error && error.message.includes('@vercel/kv: Missing required environment variable')) {
-             message = "The application is not configured correctly to connect to the database. Please contact the site administrator.";
+             message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
          }
 
          return NextResponse.json(
