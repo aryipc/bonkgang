@@ -12,7 +12,6 @@ interface StyleStats {
 interface StatsDisplayProps {
   stats: StyleStats | null;
   isLoading: boolean;
-  error: string | null;
 }
 
 const styleNames: { [key: string]: string } = {
@@ -21,19 +20,14 @@ const styleNames: { [key: string]: string } = {
   street_gang: 'Street Gang',
 };
 
-const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, isLoading, error }) => {
+const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, isLoading }) => {
   const renderContent = () => {
     // During initial app load, show loading indicator.
     if (isLoading) {
       return <p className="text-center text-gray-400">Loading stats...</p>;
     }
 
-    // If there was an initialization error, the stats could not be loaded.
-    if (error) {
-      return <p className="text-center text-red-400">Stats could not be loaded.</p>;
-    }
-
-    // If loading is finished, no error, and we have stats, display them.
+    // If loading is finished and we have stats, display them.
     if (stats) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">

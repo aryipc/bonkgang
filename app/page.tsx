@@ -10,6 +10,7 @@ import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import InfoModal from '@/components/InfoModal';
+import Loader from '@/components/Loader';
 
 interface IpStatus {
   submittedGangs: string[];
@@ -19,8 +20,13 @@ interface IpStatus {
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
   const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start in loading state
-  const [error, setError] = useState<string | null>(null);
+  
+  // State management refactored for clarity and robustness
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [stats, setStats] = useState<StyleStats | null>(null);
   const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
@@ -30,8 +36,8 @@ export default function Home() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      setIsLoading(true);
-      setError(null);
+      setIsInitializing(true);
+      setInitError(null);
       try {
         const [statsResponse, ipStatusResponse] = await Promise.all([
           fetch('/api/stats'),
@@ -59,9 +65,9 @@ export default function Home() {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
         console.error("Initialization failed:", err);
-        setError(`Initialization failed. ${errorMessage}`);
+        setInitError(`Service is temporarily unavailable. ${errorMessage}`);
       } finally {
-        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
 
@@ -71,10 +77,7 @@ export default function Home() {
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);
     setGenerationResult(null);
-    setError(null);
-    // Reset generation attempt flag to allow a new submission,
-    // but only if the user has not already reached the limit of 2.
-    // This makes the submit button lock permanent once the limit is hit.
+    setGenerateError(null);
     if ((ipStatus?.totalSubmissions ?? 0) < 2) {
       setIsGenerationAttempted(false);
     }
@@ -87,9 +90,7 @@ export default function Home() {
       sessionStorage.setItem('hasShownGangInfo', 'true');
     }
     setSelectedStyle(style);
-    // Reset generation attempt flag to allow a new submission,
-    // but only if the user has not already reached the limit of 2.
-    // This makes the submit button lock permanent once the limit is hit.
+    setGenerateError(null);
     if ((ipStatus?.totalSubmissions ?? 0) < 2) {
       setIsGenerationAttempted(false);
     }
@@ -97,101 +98,111 @@ export default function Home() {
 
   const handleGenerate = useCallback(async () => {
     if (!inputImage) {
-        setError("Please upload an image first.");
+        setGenerateError("Please upload an image first.");
         return;
     };
 
     if (!selectedStyle) {
-        setError("Please choose a gang first.");
+        setGenerateError("Please choose a gang first.");
         return;
     }
 
     if (ipStatus && ipStatus.totalSubmissions >= 2) {
-      setError("You have reached the maximum number of generations (2).");
+      setGenerateError("You have reached the maximum number of generations (2).");
       return;
     }
 
-    setIsGenerationAttempted(true); // Disable button immediately
+    setIsGenerationAttempted(true);
     setIsOutputVisible(true);
-    setIsLoading(true);
-    setError(null);
+    setIsGenerating(true);
+    setGenerateError(null);
     setGenerationResult(null);
 
     try {
-      // Step 1: Analyze the image to get a description and item count.
       const analysisResult = await analyzeImage(inputImage);
-      
-      // Step 2: Generate the new image using the analysis result.
       const result = await generateBonkImage(analysisResult.description, selectedStyle, analysisResult.itemCount);
       setGenerationResult(result);
       
-      // Step 3: Refresh stats and IP status in parallel after a successful generation.
       const [statsRes, statusRes] = await Promise.all([
           fetch('/api/stats'),
           fetch('/api/ip-status')
       ]);
 
-      if (statsRes.ok) {
-          setStats(await statsRes.json());
-      } else {
-          console.error('Failed to refresh stats after generation.');
-      }
-
-      if (statusRes.ok) {
-        setIpStatus(await statusRes.json());
-      } else {
-        console.error('Failed to refresh IP status after generation.');
-      }
+      if (statsRes.ok) setStats(await statsRes.json());
+      if (statusRes.ok) setIpStatus(await statusRes.json());
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       console.error(err);
-      setError(`Failed to generate image. ${errorMessage}`);
+      setGenerateError(`Failed to generate image. ${errorMessage}`);
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   }, [inputImage, selectedStyle, ipStatus]);
 
+  // Dedicated loading UI for initialization phase
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-       <InfoModal
+      <InfoModal
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         message="You can join a maximum of two gangs. You cannot rejoin a gang you have already joined."
       />
       <div className="w-full max-w-6xl flex flex-col items-center">
         <Header />
-        <StyleSelector 
-          selectedStyle={selectedStyle}
-          onStyleSelect={handleStyleSelect}
-          isLoading={isLoading}
-          error={error}
-          submittedGangs={ipStatus?.submittedGangs ?? []}
-        />
-        <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
-              <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
-                <PromptInput
-                  onGenerate={handleGenerate}
-                  isLoading={isLoading}
-                  error={error}
-                  inputImage={inputImage}
-                  setInputImage={handleSetInputImage}
-                  totalSubmissions={ipStatus?.totalSubmissions ?? 0}
-                  selectedStyle={selectedStyle}
-                  isGenerationAttempted={isGenerationAttempted}
-                />
-              </div>
-          </div>
 
-          {isOutputVisible && (
-            <ImageDisplay
-              artworkUrl={generationResult?.artworkUrl ?? null}
-              isLoading={isLoading}
+        {/* Dedicated error UI for initialization failure */}
+        {initError ? (
+          <div className="w-full max-w-2xl mt-12 text-center">
+            <div className="p-6 bg-red-900/50 border border-red-400 rounded-md" role="alert">
+              <h2 className="text-xl text-red-300 mb-2 font-bold">Initialization Failed</h2>
+              <p className="text-red-300">{initError}</p>
+            </div>
+          </div>
+        ) : (
+          /* Main application UI, rendered only on successful initialization */
+          <>
+            <StyleSelector 
+              selectedStyle={selectedStyle}
+              onStyleSelect={handleStyleSelect}
+              isLoading={isGenerating}
+              submittedGangs={ipStatus?.submittedGangs ?? []}
             />
-          )}
-        </main>
-        <StatsDisplay stats={stats} isLoading={isLoading} error={error} />
+            <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+              <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
+                  <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
+                    <PromptInput
+                      onGenerate={handleGenerate}
+                      isLoading={isGenerating}
+                      error={generateError}
+                      inputImage={inputImage}
+                      setInputImage={handleSetInputImage}
+                      totalSubmissions={ipStatus?.totalSubmissions ?? 0}
+                      selectedStyle={selectedStyle}
+                      isGenerationAttempted={isGenerationAttempted}
+                    />
+                  </div>
+              </div>
+
+              {isOutputVisible && (
+                <ImageDisplay
+                  artworkUrl={generationResult?.artworkUrl ?? null}
+                  isLoading={isGenerating}
+                />
+              )}
+            </main>
+            <StatsDisplay stats={stats} isLoading={isInitializing} />
+          </>
+        )}
+        
         <FooterLinks />
         <footer className="mt-4 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
