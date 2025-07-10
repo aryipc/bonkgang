@@ -12,8 +12,8 @@ const ParticleBackground: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // A more detailed Path2D object for a baseball bat silhouette, based on a 24x24 viewbox.
-        const batIconPath = new Path2D("M22.5,1.5 C22.5,1.5 21,3 16,8 L8,16 C3,21 1.5,22.5 1.5,22.5 C1.5,23.5 2.5,23.5 2.5,22.5 L6,19 C8,17 17,8 19,6 L22.5,2.5 C23.5,2.5 23.5,1.5 22.5,1.5 Z");
+        // A much more realistic baseball bat path with a distinct knob, handle, and barrel.
+        const batIconPath = new Path2D("M13,23 C12.5,24.5 11.5,24.5 11,23 C10.5,22.5 11,22 11.5,22 L12,19.5 C8,17 3,11 4,4 C4.5,0 19.5,0 20,4 C21,11 16,17 12,19.5 L12.5,22 C13,22 13.5,22.5 13,23 Z");
 
         let animationFrameId: number;
         let particlesArray: Particle[] = [];
@@ -53,7 +53,7 @@ const ParticleBackground: React.FC = () => {
                 ctx.rotate(this.rotation * Math.PI / 180);
                 
                 // Scale the bat path to be larger and more prominent.
-                const scale = this.size / 4;
+                const scale = this.size / 6; // Adjusted scale for the new size
                 ctx.scale(scale, scale);
                 // Center the path on the particle's origin (0,0) before drawing.
                 ctx.translate(-12, -12);
@@ -67,11 +67,11 @@ const ParticleBackground: React.FC = () => {
         const init = () => {
             particlesArray = [];
             // Rendering paths is more intensive, so we reduce the particle count slightly.
-            let numberOfParticles = (canvas.height * canvas.width) / 11000;
-            if (numberOfParticles > 130) numberOfParticles = 130; // Cap particles for performance
+            let numberOfParticles = (canvas.height * canvas.width) / 12000;
+            if (numberOfParticles > 100) numberOfParticles = 100; // Cap particles for performance
             for (let i = 0; i < numberOfParticles; i++) {
-                // Increased base size and range for more visible bats.
-                let size = (Math.random() * 3) + 2.5; 
+                // Further increased base size for much more visible bats.
+                let size = (Math.random() * 5) + 5; 
                 let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
                 let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * 0.4) - 0.2;
