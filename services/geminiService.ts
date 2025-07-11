@@ -1,7 +1,8 @@
 
 
+
 export interface ImageAnalysisResult {
-  description: string;
+  prompt: string;
 }
 
 export async function analyzeImage(imageFile: File, style: string): Promise<ImageAnalysisResult> {
@@ -21,8 +22,8 @@ export async function analyzeImage(imageFile: File, style: string): Promise<Imag
     }
 
     const result: ImageAnalysisResult = await response.json();
-    if (!result.description) {
-      throw new Error("The server response was incomplete or did not contain a description.");
+    if (!result.prompt) {
+      throw new Error("The server response was incomplete or did not contain a prompt.");
     }
     return result;
   } catch (error) {

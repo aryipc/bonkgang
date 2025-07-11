@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback } from 'react';
@@ -7,6 +8,7 @@ import PromptInput from '@/components/PromptInput';
 import PromptDisplay from '@/components/ImageDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import StyleSelector from '@/components/StyleSelector';
+import StatsDisplay from '@/components/StatsDisplay';
 
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
@@ -34,7 +36,7 @@ export default function Home() {
     try {
       // Pass both image and style to the analysis service
       const analysisResult = await analyzeImage(inputImage, selectedStyle);
-      setGeneratedPrompt(analysisResult.description);
+      setGeneratedPrompt(analysisResult.prompt);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       console.error(err);
@@ -71,6 +73,7 @@ export default function Home() {
             isLoading={isLoading}
           />
         </main>
+        <StatsDisplay />
         <FooterLinks />
         <footer className="mt-8 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>

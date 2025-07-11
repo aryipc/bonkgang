@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import Link from 'next/link';
 import Header from '@/components/Header';
@@ -15,17 +16,16 @@ export default function PrivacyPage() {
             <p>Your privacy is important to us. It is the policy of LetsBonkGang Official prompt page to respect your privacy regarding any information we may collect from you across our website.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">1. Information We Collect</h3>
-            <p><strong>Image Data:</strong> The primary data we collect is the image you upload. This image is sent to our server and to a third-party AI service for the sole purpose of analyzing its content and generating a new piece of artwork.</p>
-            <p><strong>Usage Data:</strong> We may collect anonymous data about your interactions with our service, such as which "gang" style is selected. This is used to generate the public "Member Stats" on the homepage. This data is aggregated and does not personally identify you.</p>
+            <p><strong>Image Data:</strong> The primary data we collect is the image you upload. This image is sent to our server and to a third-party AI service for the sole purpose of analyzing its content and generating a descriptive prompt.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">2. How We Use Information</h3>
-            <p>The image you provide is used exclusively to create a descriptive prompt for our AI model. The model then uses this prompt to generate a new image. The uploaded image and the generated descriptive prompt are not stored on our servers long-term and are discarded after the generation process is complete or fails.</p>
+            <p>The image you provide is used exclusively to create a descriptive prompt for our AI model. The uploaded image and the generated descriptive prompt are not stored on our servers long-term and are discarded after the generation process is complete or fails.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">3. Data Storage and Security</h3>
-            <p>We do not create user accounts, and we do not store your original uploaded images on our servers. The generated images may be temporarily cached for performance but are not permanently stored in association with any personal data. We take reasonable measures to protect the data during transit and processing.</p>
+            <p>We do not create user accounts, and we do not store your original uploaded images on our servers. The generated prompts may be temporarily cached for performance but are not permanently stored in association with any personal data. We take reasonable measures to protect the data during transit and processing.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">4. Third-Party Services</h3>
-            <p>We use a third-party AI to perform image analysis and generation. Your uploaded image is processed by their services in accordance with their privacy policy. We do not have control over their data handling practices.</p>
+            <p>We use a third-party AI to perform image analysis and prompt generation. Your uploaded image is processed by their services in accordance with their privacy policy. We do not have control over their data handling practices.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">5. Cookies</h3>
             <p>We do not use cookies for tracking purposes on the LetsBonkGang Official prompt page website.</p>

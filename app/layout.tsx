@@ -1,11 +1,12 @@
 
+
 import React from "react";
 import "./globals.css";
 import ParticleBackground from "@/components/ParticleBackground";
 
 export const metadata = {
   title: "LetsBonkGang Official prompt page",
-  description: "Upload an image to get a prompt and generate your own LetsBonkGang member.",
+  description: "Upload an image and select a style to generate a high-quality prompt for AI image models.",
 };
 
 export default function RootLayout({
