@@ -51,21 +51,30 @@ export async function POST(request: Request) {
   try {
     const imagePart = await fileToGenerativePart(imageFile);
 
-    // The vision prompt to generate a character description from the image.
-    const visionPrompt = `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
-- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this should be 0.
-- "description": A detailed text description of the character and their surroundings. Describe physical appearance, clothing, accessories, personality, and background. If there is text on clothing, quote it exactly. Do NOT mention any items the character is holding in this description string.`;
+    // The vision prompt to generate a prompt suitable for GPT-4o.
+    const visionPrompt = `Analyze the provided image and generate a detailed, high-quality image generation prompt suitable for a model like GPT-4o or DALL-E 3.
+
+The prompt should be a single block of text, structured as a series of descriptive, comma-separated clauses. It should be concise yet comprehensive, ideally between 50 and 80 words.
+
+Follow this structure for the content of the prompt:
+1.  **Primary Subject:** Start with the main subject (e.g., "An anthropomorphic dog").
+2.  **Appearance & Attire:** Describe its key features, clothing, and colors (e.g., "with brown fur, wearing a black leather jacket and a yellow baseball cap").
+3.  **Action & Pose:** Describe what the subject is doing and its pose (e.g., "confidently holding a wooden baseball bat with spikes, standing in a dynamic action pose").
+4.  **Key Accessories:** Mention any important accessories or items. If text is visible on clothing, include it in quotes (e.g., "wearing a gold chain necklace, jacket has 'GANG' written on the back").
+5.  **Art Style:** Define the overall artistic style (e.g., "Digital art, American comic book style (美漫风), bold outlines, cel-shading").
+6.  **Background & Lighting:** Briefly describe the setting and lighting (e.g., "in a dark alley with neon signs, dramatic backlighting").
+
+Combine these elements into one cohesive prompt string. The entire response from you MUST be a single JSON object with one key: "prompt".
+
+Example of the final JSON output I expect from you:
+{"prompt": "An anthropomorphic dog with brown fur, wearing a black leather jacket and a yellow baseball cap, confidently holding a wooden baseball bat with spikes, standing in a dynamic action pose. Digital art, American comic book style (美漫风), bold outlines, cel-shading, in a dark alley with neon signs, dramatic backlighting."}`;
     
     const responseSchema = {
         type: Type.OBJECT,
         properties: {
-            itemCount: { 
-                type: Type.INTEGER,
-                description: "The number of distinct items/weapons the character is holding."
-            },
-            description: {
+            prompt: {
                 type: Type.STRING,
-                description: "A detailed description of the character and background, excluding any items held."
+                description: "A detailed image generation prompt suitable for GPT-4o, formatted as a single block of text with comma-separated clauses."
             }
         }
     };
@@ -88,13 +97,15 @@ export async function POST(request: Request) {
 
     const result = JSON.parse(response.text.trim());
 
-    if (result && result.description !== undefined && result.itemCount !== undefined) {
-      return new Response(JSON.stringify(result), {
+    if (result && result.prompt) {
+      // The frontend service expects a 'description' field.
+      const finalResponse = { description: result.prompt };
+      return new Response(JSON.stringify(finalResponse), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
-      throw new Error("The AI failed to generate a valid description and item count.");
+      throw new Error("The AI failed to generate a valid prompt in the expected format.");
     }
   } catch (error) {
     console.error("Error in image analysis process:", error);

@@ -12,7 +12,7 @@ export default function PrivacyPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-amber-400 mb-6 text-center">Privacy Policy</h2>
 
           <div className="space-y-4 text-sm sm:text-base leading-relaxed">
-            <p>Your privacy is important to us. It is the policy of LetsBonkGang Official Register to respect your privacy regarding any information we may collect from you across our website.</p>
+            <p>Your privacy is important to us. It is the policy of LetsBonkGang Official prompt page to respect your privacy regarding any information we may collect from you across our website.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">1. Information We Collect</h3>
             <p><strong>Image Data:</strong> The primary data we collect is the image you upload. This image is sent to our server and to a third-party AI service for the sole purpose of analyzing its content and generating a new piece of artwork.</p>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             <p>We use a third-party AI to perform image analysis and generation. Your uploaded image is processed by their services in accordance with their privacy policy. We do not have control over their data handling practices.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">5. Cookies</h3>
-            <p>We do not use cookies for tracking purposes on the LetsBonkGang Official Register website.</p>
+            <p>We do not use cookies for tracking purposes on the LetsBonkGang Official prompt page website.</p>
 
             <h3 className="text-xl text-amber-300 pt-4">6. Your Rights</h3>
             <p>Since we do not store personal data or link uploads to specific users, the ability to request data deletion is not applicable. Once you close your session, your connection to the uploaded content is lost.</p>

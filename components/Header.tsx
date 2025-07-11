@@ -5,10 +5,10 @@ const Header: React.FC = () => {
   return (
     <header className="text-center w-full">
       <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-amber-400 uppercase tracking-tight">
-        LetsBonkGang Official Register
+        LetsBonkGang Official prompt page
       </h1>
       <p className="text-gray-200 mt-3 text-sm sm:text-base">
-        Register your Gang member: Upload your image and select gang
+        Upload your image and get prompt
       </p>
     </header>
   );

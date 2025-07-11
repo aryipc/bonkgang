@@ -4,8 +4,8 @@ import "./globals.css";
 import ParticleBackground from "@/components/ParticleBackground";
 
 export const metadata = {
-  title: "LetsBonkGang Official Register",
-  description: "Register your official gang member for LetsBonkGang. Upload an image, select your gang, and immortalize your character.",
+  title: "LetsBonkGang Official prompt page",
+  description: "Upload an image to get a prompt and generate your own LetsBonkGang member.",
 };
 
 export default function RootLayout({

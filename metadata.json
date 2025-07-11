@@ -1,6 +1,6 @@
 {
-  "name": " LetsBonkGang GPT Register",
-  "description": "Register your official gang member for LetsBonkGang. Upload an image, select your gang, and immortalize your character.",
+  "name": "LetsBonkGang Official prompt page",
+  "description": "Upload an image to get a prompt and generate your own LetsBonkGang member.",
   "requestFramePermissions": [],
   "prompt": ""
 }
