@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { analyzeImage, generateBonkImage, ImageGenerationResult, StyleStats, IpStatus, resetIp } from '@/services/geminiService';
+import { analyzeImage, generateBonkImage, ImageGenerationResult, StyleStats, IpStatus } from '@/services/geminiService';
 import Header from '@/components/Header';
 import PromptInput from '@/components/PromptInput';
 import ImageDisplay from '@/components/ImageDisplay';
@@ -11,7 +11,6 @@ import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import InfoModal from '@/components/InfoModal';
 import Loader from '@/components/Loader';
-import TestControls from '@/components/TestControls';
 
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
@@ -28,11 +27,6 @@ export default function Home() {
   const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
-
-  // State for dev test controls
-  const [isResetting, setIsResetting] = useState(false);
-  const [testFeedback, setTestFeedback] = useState<string | null>(null);
-
 
   const initializeApp = useCallback(async () => {
     setIsInitializing(true);
@@ -105,7 +99,6 @@ export default function Home() {
     setIsOutputVisible(true);
     setIsGenerating(true);
     setGenerateError(null);
-    setTestFeedback(null);
     setGenerationResult(null);
     setIsGenerationAttempted(true);
 
@@ -141,61 +134,6 @@ export default function Home() {
     }
     runGeneration(selectedStyle);
   }, [selectedStyle, ipStatus, runGeneration]);
-
-  const handleTestGenerate = useCallback(async () => {
-    if (isGenerating || isResetting) return;
-
-    if (!inputImage) {
-        setTestFeedback("Please upload an image to use the test button.");
-        return;
-    }
-    
-    setIsOutputVisible(true);
-    setIsGenerating(true);
-    setGenerateError(null);
-    setTestFeedback(null);
-    setGenerationResult(null);
-
-    try {
-        setTestFeedback("Analyzing image for test...");
-        const analysisResult = await analyzeImage(inputImage);
-      
-        setTestFeedback("Generating test image with balloon bat...");
-        const result = await generateBonkImage(
-            analysisResult.description,
-            'og_bonkgang',
-            analysisResult.itemCount,
-            'balloon_bat'
-        );
-        setGenerationResult(result);
-        setTestFeedback("Test generation successful.");
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      console.error(err);
-      setTestFeedback(`Test Generation Failed. ${errorMessage}`);
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [isGenerating, isResetting, inputImage]);
-  
-  const handleResetIp = useCallback(async () => {
-    if (isResetting || isGenerating) return;
-
-    setIsResetting(true);
-    setTestFeedback(null);
-    setGenerateError(null);
-    try {
-      await resetIp();
-      setTestFeedback('IP status successfully reset. You can submit again.');
-      // Refresh app state to reflect the change
-      await initializeApp();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setTestFeedback(`Failed to reset IP: ${errorMessage}`);
-    } finally {
-      setIsResetting(false);
-    }
-  }, [isResetting, isGenerating, initializeApp]);
 
 
   // Dedicated loading UI for initialization phase
@@ -263,14 +201,6 @@ export default function Home() {
               )}
             </main>
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
-            <TestControls
-                onTestGenerate={handleTestGenerate}
-                onResetIp={handleResetIp}
-                isGenerating={isGenerating}
-                isResetting={isResetting}
-                feedback={testFeedback}
-                hasImage={!!inputImage}
-            />
           </>
         )}
         

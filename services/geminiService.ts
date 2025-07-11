@@ -62,12 +62,9 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string, itemCount: number, testWeaponId?: string): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
   try {
-    const payload: { [key: string]: any } = { prompt, style, itemCount };
-    if (testWeaponId) {
-      payload.testWeaponId = testWeaponId;
-    }
+    const payload = { prompt, style, itemCount };
 
     const response = await fetch('/api/generate-pokemon-card', {
       method: 'POST',
@@ -94,17 +91,4 @@ export async function generateBonkImage(prompt: string, style: string, itemCount
     }
     throw new Error("An unknown network error occurred during generation.");
   }
-}
-
-export async function resetIp(): Promise<{ message: string }> {
-  const response = await fetch('/api/reset-ip', {
-    method: 'POST',
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'The server returned an invalid response.' }));
-    throw new Error(errorData.message || `Server error: ${response.status}`);
-  }
-  
-  return await response.json();
 }
