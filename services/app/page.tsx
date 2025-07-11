@@ -1,42 +1,37 @@
-
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateStylePrompt } from '@/lib/prompts';
 import Header from '@/components/Header';
-import PromptInput from '@/components/PromptInput';
 import PromptDisplay from '@/components/ImageDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
 
 export default function Home() {
-  const [inputImage, setInputImage] = useState<File | null>(null);
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading
   const [error, setError] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<string>('og_bonkgang');
 
-  const handleSetInputImage = (file: File | null) => {
-    setInputImage(file);
+  useEffect(() => {
+    setIsLoading(true);
     setGeneratedPrompt(null);
     setError(null);
-  };
-
-  useEffect(() => {
-    if (inputImage && selectedStyle) {
-      setIsLoading(true);
-      setGeneratedPrompt(null);
-      setError(null);
-      
-      // Simulate a brief delay to allow the loader to be perceived by the user
-      setTimeout(() => {
+    
+    const timer = setTimeout(() => {
+      try {
         const prompt = generateStylePrompt(selectedStyle);
         setGeneratedPrompt(prompt);
+      } catch (e) {
+        setError("Failed to generate prompt. Please try a different style.");
+      } finally {
         setIsLoading(false);
-      }, 300);
-    }
-  }, [inputImage, selectedStyle]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [selectedStyle]);
 
 
   return (
@@ -52,16 +47,10 @@ export default function Home() {
         )}
         <main className="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {/* Left Column for Inputs */}
-          <div className="flex flex-col gap-8">
-            <PromptInput
-              inputImage={inputImage}
-              setInputImage={handleSetInputImage}
-            />
-            <StyleSelector
-                selectedStyle={selectedStyle}
-                setSelectedStyle={setSelectedStyle}
-            />
-          </div>
+          <StyleSelector
+              selectedStyle={selectedStyle}
+              setSelectedStyle={setSelectedStyle}
+          />
 
           {/* Right Column for Output */}
           <PromptDisplay
