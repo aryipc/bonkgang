@@ -4,9 +4,10 @@ export interface ImageAnalysisResult {
   description: string;
 }
 
-export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult> {
+export async function analyzeImage(imageFile: File, style: string): Promise<ImageAnalysisResult> {
   const formData = new FormData();
   formData.append('image', imageFile);
+  formData.append('style', style);
 
   try {
     const response = await fetch('/api/analyze-image', {

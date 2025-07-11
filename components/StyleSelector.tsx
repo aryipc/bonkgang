@@ -30,8 +30,8 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelecte
     const selectedGang = gangs.find(g => g.id === selectedStyle);
     
     return (
-        <div className="w-full max-w-lg flex flex-col items-center gap-3 my-6" role="radiogroup" aria-labelledby="gang-label">
-            <h2 id="gang-label" className="text-xl text-center text-amber-400">Choose a Gang</h2>
+        <div className="w-full flex flex-col items-center gap-3" role="radiogroup" aria-labelledby="gang-label">
+            <h2 id="gang-label" className="text-xl text-center text-amber-400 uppercase">Choose Your Style</h2>
             <div className="grid grid-cols-3 gap-4 w-full">
                 {gangs.map(gang => (
                     <button

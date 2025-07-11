@@ -18,15 +18,23 @@ const Placeholder = () => (
 );
 
 const PromptDisplay: React.FC<PromptDisplayProps> = ({ prompt, isLoading }) => {
-  const [copyButtonText, setCopyButtonText] = useState('COPY PROMPT');
+  const [buttonText, setButtonText] = useState('USE ON CHATGPT');
 
-  const handleCopy = () => {
+  const handleUseOnGpt = () => {
     if (prompt) {
+      // First, copy the prompt to the clipboard as a fallback for the user
       navigator.clipboard.writeText(prompt);
-      setCopyButtonText('COPIED!');
+
+      // Then, open ChatGPT with the prompt pre-filled in the URL
+      const encodedPrompt = encodeURIComponent(prompt);
+      const chatGptUrl = `https://chatgpt.com/?q=${encodedPrompt}`;
+      window.open(chatGptUrl, '_blank');
+
+      // Provide feedback to the user
+      setButtonText('COPIED & OPENED!');
       setTimeout(() => {
-        setCopyButtonText('COPY PROMPT');
-      }, 2000);
+        setButtonText('USE ON CHATGPT');
+      }, 3000);
     }
   };
 
@@ -45,10 +53,10 @@ const PromptDisplay: React.FC<PromptDisplayProps> = ({ prompt, isLoading }) => {
        <div className="text-center h-10 flex items-center justify-center mt-auto pt-4">
         {prompt && !isLoading && (
             <button
-                onClick={handleCopy}
+                onClick={handleUseOnGpt}
                 className={`w-full px-4 py-3 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] hover:bg-amber-500 active:translate-y-1 active:translate-x-1 active:shadow-none flex items-center justify-center text-sm sm:text-base`}
             >
-                {copyButtonText}
+                {buttonText}
             </button>
         )}
       </div>
