@@ -9,10 +9,11 @@ interface TestControlsProps {
   isGenerating: boolean;
   isResetting: boolean;
   feedback: string | null;
+  hasImage: boolean;
 }
 
-const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, isGenerating, isResetting, feedback }) => {
-  const hasFeedbackFailed = feedback?.toLowerCase().includes('failed');
+const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, isGenerating, isResetting, feedback, hasImage }) => {
+  const feedbackIsError = feedback?.toLowerCase().includes('failed') || feedback?.toLowerCase().includes('please upload');
   
   return (
     <div className="w-full max-w-3xl mt-8">
@@ -23,10 +24,11 @@ const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={onTestGenerate}
-            disabled={isGenerating || isResetting}
-            className="px-4 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            disabled={isGenerating || isResetting || !hasImage}
+            className="px-4 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-70"
+            title={!hasImage ? "Please upload an image first to use this test." : "Test generation with balloon bat weapon"}
           >
-            {isGenerating ? 'GENERATING...' : 'Test Balloon Bat'}
+            {isGenerating ? 'TESTING...' : 'Test Balloon Bat'}
           </button>
           <button
             onClick={onResetIp}
@@ -38,7 +40,7 @@ const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, 
         </div>
         {feedback && (
           <div className="mt-4 text-center p-2 rounded-md bg-zinc-800 border border-zinc-700">
-            <p className={`text-sm ${hasFeedbackFailed ? 'text-red-400' : 'text-green-400'}`}>
+            <p className={`text-sm ${feedbackIsError ? 'text-red-400' : 'text-green-400'}`}>
               {feedback}
             </p>
           </div>

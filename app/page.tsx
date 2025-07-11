@@ -144,6 +144,11 @@ export default function Home() {
 
   const handleTestGenerate = useCallback(async () => {
     if (isGenerating || isResetting) return;
+
+    if (!inputImage) {
+        setTestFeedback("Please upload an image to use the test button.");
+        return;
+    }
     
     setIsOutputVisible(true);
     setIsGenerating(true);
@@ -152,10 +157,14 @@ export default function Home() {
     setGenerationResult(null);
 
     try {
+        setTestFeedback("Analyzing image for test...");
+        const analysisResult = await analyzeImage(inputImage);
+      
+        setTestFeedback("Generating test image with balloon bat...");
         const result = await generateBonkImage(
-            "An anthropomorphic dog in a dynamic pose, looking cool and stylish.",
+            analysisResult.description,
             'og_bonkgang',
-            1, // itemCount <= 1 for a single weapon
+            analysisResult.itemCount,
             'balloon_bat'
         );
         setGenerationResult(result);
@@ -167,7 +176,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [isGenerating, isResetting]);
+  }, [isGenerating, isResetting, inputImage]);
   
   const handleResetIp = useCallback(async () => {
     if (isResetting || isGenerating) return;
@@ -260,6 +269,7 @@ export default function Home() {
                 isGenerating={isGenerating}
                 isResetting={isResetting}
                 feedback={testFeedback}
+                hasImage={!!inputImage}
             />
           </>
         )}
