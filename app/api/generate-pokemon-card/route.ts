@@ -80,8 +80,8 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
             { 
                 id: 'balloon_bat', 
                 value: { 
-                    single: "a large wooden baseball bat with sharp metal spikes. One spike has pierced and shredded a green and white pill-shaped balloon, which is now completely deflated and draped limply over the spike.",
-                    plural: "large wooden baseball bats with sharp metal spikes. On each bat, a spike has pierced and shredded a green and white pill-shaped balloon, which are now completely deflated and draped limply over the spikes."
+                    single: "a large wooden baseball bat with sharp metal spikes. Scraps of torn green and white paper are impaled on one of the spikes.",
+                    plural: "large wooden baseball bats with sharp metal spikes. On each bat, scraps of torn green and white paper are impaled on the spikes."
                 }, 
                 weight: 20 
             },
