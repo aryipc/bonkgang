@@ -1,7 +1,4 @@
 
-
-
-
 import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
 import { readStats, writeStats, readIpUsage, writeIpUsage, type IpUsage } from "@/app/api/lib/db";
@@ -80,7 +77,14 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
         og_bonkgang: [
             { id: 'bat', value: { single: "a large wooden baseball bat", plural: "large wooden baseball bats" }, weight: 50 },
             { id: 'spiky_bat', value: { single: "a large wooden baseball bat with sharp metal spikes protruding from it", plural: "large wooden baseball bats with sharp metal spikes protruding from them" }, weight: 30 },
-            { id: 'balloon_bat', value: { single: "a large wooden baseball bat with sharp metal spikes, and a deflated, green and white pill-shaped balloon is tied to its handle", plural: "large wooden baseball bats with sharp metal spikes, and deflated, green and white pill-shaped balloons are tied to their handles" }, weight: 20 },
+            { 
+                id: 'balloon_bat', 
+                value: { 
+                    single: "a large wooden baseball bat with sharp metal spikes. One spike has pierced and shredded a green and white pill-shaped balloon, which is now completely deflated and draped limply over the spike.",
+                    plural: "large wooden baseball bats with sharp metal spikes. On each bat, a spike has pierced and shredded a green and white pill-shaped balloon, which are now completely deflated and draped limply over the spikes."
+                }, 
+                weight: 20 
+            },
         ],
     };
 
