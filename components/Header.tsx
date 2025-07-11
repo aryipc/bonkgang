@@ -8,7 +8,7 @@ const Header: React.FC = () => {
         LetsBonkGang Official <br /> prompt page
       </h1>
       <p className="text-gray-200 mt-3 text-sm sm:text-base">
-        Upload your image and get prompt
+        Select a style and get your prompt for ChatGPT
       </p>
     </header>
   );
