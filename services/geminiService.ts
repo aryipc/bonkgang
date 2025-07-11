@@ -1,20 +1,6 @@
 
-
-export interface StyleStats {
-  og_bonkgang: number;
-  hung_hing: number;
-  street_gang: number;
-}
-
-export interface IpStatus {
-  submittedGangs: string[];
-  totalSubmissions: number;
-}
-
 export interface ImageGenerationResult {
   artworkUrl: string;
-  newStats?: StyleStats;
-  newIpStatus?: IpStatus;
 }
 
 export interface ImageAnalysisResult {
@@ -22,13 +8,24 @@ export interface ImageAnalysisResult {
   itemCount: number;
 }
 
+export interface StyleStats {
+  og_bonkgang: number;
+  hung_hing: number;
+  street_gang: number;
+}
+
 export async function getStats(): Promise<StyleStats> {
-  const response = await fetch('/api/stats');
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'The server returned an invalid response.' }));
-    throw new Error(errorData.message || `Server error: ${response.status}`);
+  try {
+    const response = await fetch('/api/stats');
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    // Return default stats on error to prevent UI from crashing.
+    return { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
   }
-  return await response.json();
 }
 
 export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult> {
@@ -60,19 +57,15 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string, itemCount: number, testWeaponId?: string): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
   try {
-    const payload: { [key: string]: any } = { prompt, style, itemCount };
-    if (testWeaponId) {
-      payload.testWeaponId = testWeaponId;
-    }
-
+    // Note: The endpoint name is kept for simplicity as we cannot rename files.
     const response = await fetch('/api/generate-pokemon-card', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ prompt, style, itemCount }),
     });
 
     if (!response.ok) {
@@ -82,12 +75,13 @@ export async function generateBonkImage(prompt: string, style: string, itemCount
 
     const result: ImageGenerationResult = await response.json();
     if (!result.artworkUrl) {
-        throw new Error("The server response did not contain the generated artwork URL.");
+        throw new Error("The server response did not contain an artwork URL.");
     }
     return result;
   } catch (error) {
     console.error("Error calling generation service:", error);
     if (error instanceof Error) {
+        // Re-throw the error with a more user-friendly message for the UI to catch.
         throw new Error(error.message);
     }
     throw new Error("An unknown network error occurred during generation.");

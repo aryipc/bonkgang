@@ -1,25 +1,37 @@
 
-import { NextResponse } from 'next/server';
-import { readStats } from '@/app/api/lib/db';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-export const dynamic = 'force-dynamic'; // Ensures the route is always executed dynamically.
+const dbPath = path.join('/tmp', 'db.json');
+
+type Stats = {
+    [key: string]: number;
+};
 
 export async function GET() {
     try {
-        const stats = await readStats();
-        return NextResponse.json(stats);
+        await fs.access(dbPath); // Check if file exists
+        const data = await fs.readFile(dbPath, 'utf8');
+        const stats: Stats = JSON.parse(data);
+        return new Response(JSON.stringify(stats), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        });
     } catch (error) {
-         console.error("API route /api/stats failed to read DB:", error);
-         
-         let message = "Service is temporarily unavailable due to a database error.";
-         // Check for a specific configuration error message from @vercel/kv
-         if (error instanceof Error && error.message.includes('@vercel/kv: Missing required environment variable')) {
-             message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
-         }
-
-         return NextResponse.json(
-            { message },
-            { status: 503, headers: { 'Content-Type': 'application/json' } }
-        );
+        // If file doesn't exist, create it and return default stats
+        const defaultStats: Stats = { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
+        try {
+            await fs.writeFile(dbPath, JSON.stringify(defaultStats, null, 2), 'utf8');
+            return new Response(JSON.stringify(defaultStats), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        } catch (writeError) {
+             console.error("Failed to create stats DB:", writeError);
+             return new Response(JSON.stringify({ message: "Failed to initialize stats database." }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
     }
 }

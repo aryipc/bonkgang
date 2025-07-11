@@ -76,7 +76,7 @@ const ParticleBackground: React.FC = () => {
                 let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * 0.4) - 0.2;
                 let directionY = (Math.random() * 0.4) - 0.2;
-                let color = 'rgba(251, 191, 36, 0.3)'; // Amber color with reduced opacity
+                let color = 'rgba(251, 191, 36, 0.7)'; // Amber color with opacity
 
                 particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
             }
@@ -120,7 +120,7 @@ const ParticleBackground: React.FC = () => {
 
                         const gradient = ctx.createRadialGradient(midX, midY, 0, midX, midY, glowRadius);
                         const opacity = 1 - (distance / collisionDistance);
-                        gradient.addColorStop(0, `rgba(251, 191, 36, ${opacity * 0.2})`);
+                        gradient.addColorStop(0, `rgba(251, 191, 36, ${opacity * 0.5})`);
                         gradient.addColorStop(1, 'rgba(251, 191, 36, 0)');
 
                         ctx.fillStyle = gradient;

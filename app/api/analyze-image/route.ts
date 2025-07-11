@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   if (!process.env.API_KEY) {
     console.error("API_KEY environment variable is not set.");
     return new Response(
-        JSON.stringify({ message: "API_KEY environment variable is not set. Please ensure it is configured on the server." }),
+        JSON.stringify({ message: "The service is temporarily unavailable. Please try again later." }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -50,15 +50,11 @@ export async function POST(request: Request) {
   // 3. Run the AI analysis logic
   try {
     const imagePart = await fileToGenerativePart(imageFile);
-    const textPart = {
-        text: `Analyze the provided image and return a JSON object.
-The JSON object must contain two properties: "description" and "itemCount".
 
-1.  "description": Create a detailed text description focusing ONLY on the character's appearance (species, build, colors), their clothing, and any non-held accessories. Also describe the background scene. If there is any text visible on clothing, quote it exactly.
-2.  "itemCount": Count the number of distinct items, tools, or weapons the character is actively holding in their hands. This must be an integer. If they are holding nothing, the value must be 0.
-
-Your entire response must be a single, valid JSON object matching this structure and nothing else. No commentary or markdown formatting.`
-    };
+    // The vision prompt to generate a character description from the image.
+    const visionPrompt = `Analyze this image and provide a JSON object with two keys: "itemCount" and "description".
+- "itemCount": An integer representing the number of distinct weapons, tools, or significant items the character is holding in their hands. If they are holding nothing, this should be 0.
+- "description": A detailed text description of the character and their surroundings. Describe physical appearance, clothing, accessories, personality, and background. If there is text on clothing, quote it exactly. Do NOT mention any items the character is holding in this description string.`;
     
     const responseSchema = {
         type: Type.OBJECT,
@@ -76,37 +72,21 @@ Your entire response must be a single, valid JSON object matching this structure
 
     const response = await ai.models.generateContent({
         model: visionModel,
-        contents: { parts: [imagePart, textPart] },
+        contents: [
+            { text: visionPrompt },
+            imagePart,
+        ],
         config: {
             responseMimeType: "application/json",
             responseSchema: responseSchema,
         },
     });
     
-    // More robust response validation
-    const finishReason = response?.candidates?.[0]?.finishReason;
-    if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
-      let userMessage = `The AI generation was stopped for an unexpected reason: ${finishReason}.`;
-      if (finishReason === 'SAFETY') {
-          userMessage = "The request was blocked by the AI's safety filter. Please try using a different image.";
-      }
-      console.error(`AI analysis stopped. Reason: ${finishReason}. Full response:`, JSON.stringify(response, null, 2));
-      throw new Error(userMessage);
-    }
-    
     if (!response.text) {
-        console.error("AI analysis response was empty. Full response:", JSON.stringify(response, null, 2));
-        throw new Error("The AI returned an empty response. This can happen with some images; please try another.");
-    }
-    
-    let result;
-    try {
-        result = JSON.parse(response.text.trim());
-    } catch (parseError) {
-        console.error("Failed to parse AI JSON response. Raw text:", response.text);
-        throw new Error("The AI returned a response in an invalid format.");
+        throw new Error("The AI response was empty. Unable to parse content.");
     }
 
+    const result = JSON.parse(response.text.trim());
 
     if (result && result.description !== undefined && result.itemCount !== undefined) {
       return new Response(JSON.stringify(result), {
@@ -114,7 +94,6 @@ Your entire response must be a single, valid JSON object matching this structure
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
-      console.error("AI response was missing required JSON fields. Parsed result:", result);
       throw new Error("The AI failed to generate a valid description and item count.");
     }
   } catch (error) {
@@ -125,8 +104,7 @@ Your entire response must be a single, valid JSON object matching this structure
         if (error.message.includes("API_KEY_INVALID")) {
             message = "The configured API key is invalid. Please check the API_KEY environment variable on the server.";
         } else {
-            // Use the specific error message from the try block
-            message = error.message;
+            message = `The API failed to process the request: ${error.message}`;
         }
     }
     return new Response(
