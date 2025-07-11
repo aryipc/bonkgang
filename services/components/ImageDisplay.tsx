@@ -69,8 +69,8 @@ const PromptDisplay: React.FC<PromptDisplayProps> = ({ prompt, isLoading }) => {
                       {buttonText}
                   </button>
                   {showConfirmation && (
-                      <p className="text-xs text-amber-200 animate-fadeInUp">
-                          Prompt copied to clipboard!
+                      <p className="text-sm text-amber-300 animate-fadeInUp flex items-center justify-center gap-2 mt-2">
+                          ✨ Prompt Copied! Now just paste it in ChatGPT.
                       </p>
                   )}
               </div>
