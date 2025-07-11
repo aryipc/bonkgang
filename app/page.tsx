@@ -1,7 +1,4 @@
 
-
-
-
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -206,7 +203,7 @@ export default function Home() {
           </>
         )}
         
-        <FooterLinks onReset={initializeApp} />
+        <FooterLinks />
         <footer className="mt-8 text-center text-xs text-gray-400">
           <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
         </footer>
