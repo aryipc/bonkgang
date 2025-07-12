@@ -1,6 +1,7 @@
+
 {
   "name": "LetsBonkGang Official Register",
-  "description": "Register your official gang member for LetsBonkGang. Upload an image, select your gang, and immortalize your character.",
+  "description": "Register your Gang member: Upload your image and select a gang to generate your unique character.",
   "requestFramePermissions": [],
   "prompt": ""
 }

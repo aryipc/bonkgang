@@ -1,266 +1,206 @@
 
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { analyzeImage, generateBonkImage, ImageGenerationResult, StyleStats, IpStatus } from '@/services/geminiService';
+import React, { useState, useEffect, useCallback } from 'react';
+
+// Components
 import Header from '@/components/Header';
 import PromptInput from '@/components/PromptInput';
 import ImageDisplay from '@/components/ImageDisplay';
 import StyleSelector from '@/components/StyleSelector';
 import StatsDisplay from '@/components/StatsDisplay';
+import ParticleBackground from '@/components/ParticleBackground';
 import FooterLinks from '@/components/FooterLinks';
-import InfoModal from '@/components/InfoModal';
-import Loader from '@/components/Loader';
 import TestControls from '@/components/TestControls';
 
-export default function Home() {
-  const [inputImage, setInputImage] = useState<File | null>(null);
-  const [generationResult, setGenerationResult] = useState<ImageGenerationResult | null>(null);
-  
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [initError, setInitError] = useState<string | null>(null);
-  const [generateError, setGenerateError] = useState<string | null>(null);
+// Services & Types
+import {
+  analyzeImage,
+  generateBonkImage,
+  getStats,
+  type StyleStats,
+  type IpStatus,
+  type ImageAnalysisResult,
+  type ImageGenerationResult,
+} from '@/services/geminiService';
 
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+
+async function getIpStatus(): Promise<IpStatus> {
+    const response = await fetch('/api/ip-status');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'The server returned an invalid response.' }));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+    }
+    const data = await response.json();
+    // Provide a default structure if the response is not as expected
+    return {
+        totalSubmissions: data.totalSubmissions ?? 0,
+        submittedGangs: data.submittedGangs ?? [],
+    };
+}
+
+
+export default function HomePage() {
+  // Data state
   const [stats, setStats] = useState<StyleStats | null>(null);
-  const [isOutputVisible, setIsOutputVisible] = useState<boolean>(false);
-  const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [ipStatus, setIpStatus] = useState<IpStatus>({ totalSubmissions: 0, submittedGangs: [] });
+
+  // UI state
+  const [inputImage, setInputImage] = useState<File | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [artworkUrl, setArtworkUrl] = useState<string | null>(null);
+
+  // Process state
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
 
-  // State for Test Controls
-  const [isResettingIp, setIsResettingIp] = useState<boolean>(false);
+  // Test controls state
+  const [isResettingIp, setIsResettingIp] = useState(false);
   const [testFeedback, setTestFeedback] = useState<string | null>(null);
-  const [showTests, setShowTests] = useState<boolean>(false);
 
-  const initializeApp = useCallback(async () => {
-    setIsInitializing(true);
-    setInitError(null);
+  const fetchInitialData = useCallback(async () => {
+    setIsInitialLoading(true);
+    setError(null);
     try {
-      const [statsResponse, ipStatusResponse] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/ip-status')
-      ]);
-
-      if (!statsResponse.ok) {
-        const errorData = await statsResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to load member stats.');
-      }
-
-      if (!ipStatusResponse.ok) {
-        const errorData = await ipStatusResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to load user status.');
-      }
-
       const [statsData, ipStatusData] = await Promise.all([
-        statsResponse.json(),
-        ipStatusResponse.json()
+        getStats(),
+        getIpStatus()
       ]);
-      
       setStats(statsData);
       setIpStatus(ipStatusData);
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during setup.';
-      console.error("Initialization failed:", err);
-      setInitError(errorMessage);
+    } catch (e: any) {
+      console.error("Failed to fetch initial data:", e);
+      setError(`Failed to load initial data. ${e.message}. Please try refreshing the page.`);
     } finally {
-      setIsInitializing(false);
+      setIsInitialLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    initializeApp();
-    // Check for test mode query parameter on client side
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('show_tests') === 'true') {
-      setShowTests(true);
-    }
-  }, [initializeApp]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
-  const handleSetInputImage = (file: File | null) => {
-    setInputImage(file);
-    setGenerationResult(null);
-    setGenerateError(null);
-    setTestFeedback(null);
-    if ((ipStatus?.totalSubmissions ?? 0) < 2) {
+  useEffect(() => {
+    if (inputImage) {
       setIsGenerationAttempted(false);
-    }
-  };
-
-  const handleStyleSelect = (style: string) => {
-    const hasShownInfo = sessionStorage.getItem('hasShownGangInfo') === 'true';
-    if (!hasShownInfo) {
-      setIsInfoModalOpen(true);
-      sessionStorage.setItem('hasShownGangInfo', 'true');
-    }
-    setSelectedStyle(style);
-    setGenerateError(null);
-    if ((ipStatus?.totalSubmissions ?? 0) < 2) {
-      setIsGenerationAttempted(false);
-    }
-  };
-  
-  const runGeneration = useCallback(async (style: string, weaponId?: string, isTest: boolean = false) => {
-    if (!inputImage) {
-      const msg = "Please upload an image first.";
-      setGenerateError(msg);
-      if (isTest) setTestFeedback(`Failed: ${msg}`);
-      return;
-    }
-
-    setIsOutputVisible(true);
-    setIsGenerating(true);
-    setGenerateError(null);
-    setTestFeedback(null);
-    setGenerationResult(null);
-    if (!isTest) setIsGenerationAttempted(true);
-
-    try {
-      const analysisResult = await analyzeImage(inputImage);
-      const result = await generateBonkImage(analysisResult.description, style, analysisResult.itemCount, weaponId);
-      
-      setGenerationResult(result);
-      
-      if (!isTest && result.newStats && result.newIpStatus) {
-        setStats(result.newStats);
-        setIpStatus(result.newIpStatus);
-      }
-      if(isTest) setTestFeedback('Test generation successful!');
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      console.error(err);
-      const finalMessage = `Failed to generate image. ${errorMessage}`;
-      setGenerateError(finalMessage);
-      if (isTest) setTestFeedback(`Failed: ${errorMessage}`);
-    } finally {
-      setIsGenerating(false);
+      setArtworkUrl(null);
+      setError(null);
     }
   }, [inputImage]);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = async (isTest: boolean = false) => {
+    if (!inputImage) {
+      setError("Please upload an image first.");
+      return;
+    }
     if (!selectedStyle) {
-      setGenerateError("Please choose a gang first.");
+      setError("Please select a gang style.");
       return;
     }
-    if (ipStatus && ipStatus.totalSubmissions >= 2) {
-      setGenerateError("You can join a maximum of two gangs.");
-      return;
+
+    setIsGenerating(true);
+    setArtworkUrl(null);
+    setError(null);
+    setIsGenerationAttempted(true);
+    if (testFeedback) setTestFeedback(null);
+
+    try {
+      const analysisResult: ImageAnalysisResult = await analyzeImage(inputImage);
+      
+      const weaponId = isTest ? 'balloon_bat' : undefined;
+      const generationResult: ImageGenerationResult = await generateBonkImage(
+          analysisResult.description,
+          selectedStyle,
+          analysisResult.itemCount,
+          weaponId
+      );
+
+      setArtworkUrl(generationResult.artworkUrl);
+      
+      if (!isTest && generationResult.newStats && generationResult.newIpStatus) {
+        setStats(generationResult.newStats);
+        setIpStatus(generationResult.newIpStatus);
+      } else if (isTest) {
+        setTestFeedback("Test generation successful!");
+      }
+
+    } catch (err: any) {
+      console.error("Generation process failed:", err);
+      const errorMessage = err.message || "An unknown error occurred during generation.";
+      setError(errorMessage);
+      if (isTest) {
+        setTestFeedback(`Test generation failed: ${errorMessage}`);
+      }
+    } finally {
+      setIsGenerating(false);
     }
-    runGeneration(selectedStyle);
-  }, [selectedStyle, ipStatus, runGeneration]);
+  };
 
-  const handleTestGenerate = useCallback(() => {
-    runGeneration('og_bonkgang', 'balloon_bat', true);
-  }, [runGeneration]);
-
-  const handleResetIp = useCallback(async () => {
+  const handleResetIp = async () => {
     setIsResettingIp(true);
     setTestFeedback(null);
     try {
       const response = await fetch('/api/reset-ip', { method: 'POST' });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset IP.');
-      }
-      setTestFeedback(data.message);
-      // Refresh user status from server
-      await initializeApp();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setTestFeedback(`Failed to reset IP: ${message}`);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Failed to reset IP.');
+      setTestFeedback(result.message);
+      await fetchInitialData(); // Refresh data after reset
+    } catch (err: any) {
+      setTestFeedback(`Failed to reset IP: ${err.message}`);
     } finally {
       setIsResettingIp(false);
     }
-  }, [initializeApp]);
-
-  // Dedicated loading UI for initialization phase
-  if (isInitializing && !initError) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="min-h-screen text-white p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-      <InfoModal
-        isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
-        message="You can join a maximum of two gangs. You cannot rejoin a gang you have already joined."
-      />
-      <div className="w-full max-w-6xl flex flex-col items-center">
-        <Header />
+    <>
+      <ParticleBackground />
+      <div className="flex min-h-screen flex-col items-center p-4 sm:p-8 relative z-10 font-sans">
+        <div className="w-full max-w-6xl flex flex-col items-center gap-6">
+          <Header />
 
-        {initError ? (
-          <div className="w-full max-w-2xl mt-12 text-center">
-            <div className="p-6 bg-red-900/50 border border-red-400 rounded-md" role="alert">
-              <h2 className="text-xl text-red-300 mb-2 font-bold">Initialization Failed</h2>
-              <p className="text-red-300">{initError}</p>
-              <button
-                onClick={initializeApp}
-                disabled={isInitializing}
-                className="mt-6 px-8 py-2 bg-amber-400 text-black font-bold rounded-md transition-all duration-200 ease-in-out border-2 border-black shadow-[4px_4px_0px_#000] enabled:hover:bg-amber-500 enabled:active:translate-y-1 enabled:active:translate-x-1 enabled:active:shadow-none disabled:bg-gray-700 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
-              >
-                {isInitializing ? 'RETRYING...' : 'RETRY'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <StyleSelector 
-              selectedStyle={selectedStyle}
-              onStyleSelect={handleStyleSelect}
-              isLoading={isGenerating}
-              submittedGangs={ipStatus?.submittedGangs ?? []}
-            />
-            <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-              <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
-                  <div className={isOutputVisible ? 'w-full' : 'w-full max-w-xl'}>
-                    <PromptInput
-                      onGenerate={handleGenerate}
-                      isLoading={isGenerating}
-                      error={generateError}
-                      inputImage={inputImage}
-                      setInputImage={handleSetInputImage}
-                      totalSubmissions={ipStatus?.totalSubmissions ?? 0}
-                      selectedStyle={selectedStyle}
-                      isGenerationAttempted={isGenerationAttempted}
-                    />
-                  </div>
-              </div>
-
-              {isOutputVisible && (
-                <ImageDisplay
-                  artworkUrl={generationResult?.artworkUrl ?? null}
-                  isLoading={isGenerating}
-                />
-              )}
-            </main>
-            <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
-            
-            {/* Show test controls in dev or if query param is set */}
-            {(process.env.NODE_ENV === 'development' || showTests) && (
-              <TestControls
-                onTestGenerate={handleTestGenerate}
-                onResetIp={handleResetIp}
-                isGenerating={isGenerating}
-                isResetting={isResettingIp}
-                feedback={testFeedback}
-                hasImage={!!inputImage}
+          <main className="w-full flex flex-col items-center gap-6">
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <PromptInput
+                onGenerate={() => handleGenerate(false)}
+                isLoading={isGenerating}
+                error={error}
+                inputImage={inputImage}
+                setInputImage={setInputImage}
+                totalSubmissions={ipStatus.totalSubmissions}
+                selectedStyle={selectedStyle}
+                isGenerationAttempted={isGenerationAttempted}
               />
-            )}
-          </>
-        )}
-        
-        <FooterLinks />
-        <footer className="mt-8 text-center text-xs text-gray-400">
-          <p>Powered by LetsBonkGang Official Team &copy; 2025</p>
-        </footer>
+              <ImageDisplay
+                artworkUrl={artworkUrl}
+                isLoading={isGenerating}
+              />
+            </div>
+            
+            <StyleSelector
+              selectedStyle={selectedStyle}
+              onStyleSelect={setSelectedStyle}
+              isLoading={isGenerating}
+              submittedGangs={ipStatus.submittedGangs}
+            />
+
+            <StatsDisplay stats={stats} isLoading={isInitialLoading} />
+            
+            <TestControls
+              onTestGenerate={() => handleGenerate(true)}
+              onResetIp={handleResetIp}
+              isGenerating={isGenerating}
+              isResetting={isResettingIp}
+              feedback={testFeedback}
+              hasImage={!!inputImage}
+            />
+          </main>
+          
+          <FooterLinks />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

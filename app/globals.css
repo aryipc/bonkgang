@@ -1,8 +1,9 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Archivo Black', sans-serif;
-  background-color: #121212; /* A solid, dark background color */
+  background-color: #0a0a0a;
+  color: #e5e7eb; /* gray-200 */
 }
