@@ -31,6 +31,7 @@ export default function Home() {
 
   // State for Test Controls
   const [isResettingIp, setIsResettingIp] = useState<boolean>(false);
+  const [isRefreshingIp, setIsRefreshingIp] = useState<boolean>(false);
   const [testFeedback, setTestFeedback] = useState<string | null>(null);
   const [showTests, setShowTests] = useState<boolean>(false);
 
@@ -156,6 +157,25 @@ export default function Home() {
     runGeneration('og_bonkgang', 'balloon_bat', true);
   }, [runGeneration]);
 
+  const handleRefreshIp = useCallback(async () => {
+    setIsRefreshingIp(true);
+    setTestFeedback(null);
+    try {
+      const response = await fetch('/api/ip-status');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to renew IP status.');
+      }
+      setIpStatus(data);
+      setTestFeedback(`IP status renewed. Submissions: ${data.totalSubmissions}. Gangs: [${data.submittedGangs.join(', ') || 'None'}]`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setTestFeedback(`Failed to renew IP status: ${message}`);
+    } finally {
+      setIsRefreshingIp(false);
+    }
+  }, []);
+
   const handleResetIp = useCallback(async () => {
     setIsResettingIp(true);
     setTestFeedback(null);
@@ -170,7 +190,7 @@ export default function Home() {
       await initializeApp();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setTestFeedback(`Failed to reset IP: ${message}`);
+      setTestFeedback(`Failed to reset IP limit: ${message}`);
     } finally {
       setIsResettingIp(false);
     }
@@ -247,8 +267,10 @@ export default function Home() {
               <TestControls
                 onTestGenerate={handleTestGenerate}
                 onResetIp={handleResetIp}
+                onRefreshIp={handleRefreshIp}
                 isGenerating={isGenerating}
                 isResetting={isResettingIp}
+                isRefreshing={isRefreshingIp}
                 feedback={testFeedback}
                 hasImage={!!inputImage}
               />

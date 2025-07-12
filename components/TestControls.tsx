@@ -6,13 +6,15 @@ import React from 'react';
 interface TestControlsProps {
   onTestGenerate: () => void;
   onResetIp: () => void;
+  onRefreshIp: () => void;
   isGenerating: boolean;
   isResetting: boolean;
+  isRefreshing: boolean;
   feedback: string | null;
   hasImage: boolean;
 }
 
-const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, isGenerating, isResetting, feedback, hasImage }) => {
+const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, onRefreshIp, isGenerating, isResetting, isRefreshing, feedback, hasImage }) => {
   const feedbackIsError = feedback?.toLowerCase().includes('failed') || feedback?.toLowerCase().includes('please upload');
   
   return (
@@ -21,21 +23,28 @@ const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, 
         <h2 className="text-xl text-center text-red-400/90 mb-4 font-normal tracking-wider">
           Dev Test Controls
         </h2>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
           <button
             onClick={onTestGenerate}
-            disabled={isGenerating || isResetting || !hasImage}
+            disabled={isGenerating || isResetting || isRefreshing || !hasImage}
             className="px-4 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-70"
             title={!hasImage ? "Please upload an image first to use this test." : "Test generation with balloon bat weapon"}
           >
             {isGenerating ? 'TESTING...' : 'Test Balloon Bat'}
           </button>
           <button
+            onClick={onRefreshIp}
+            disabled={isGenerating || isResetting || isRefreshing}
+            className="px-4 py-2 bg-purple-600 text-white font-bold rounded-md transition-colors hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+          >
+            {isRefreshing ? 'RENEWING...' : 'Renew IP Status'}
+          </button>
+          <button
             onClick={onResetIp}
-            disabled={isGenerating || isResetting}
+            disabled={isGenerating || isResetting || isRefreshing}
             className="px-4 py-2 bg-green-600 text-white font-bold rounded-md transition-colors hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
-            {isResetting ? 'RESETTING...' : 'Reset IP Status'}
+            {isResetting ? 'RESETTING...' : 'Reset IP Limit'}
           </button>
         </div>
         {feedback && (
