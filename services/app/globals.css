@@ -1,8 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  font-family: 'Archivo Black', sans-serif;
-  background-color: #121212; /* A solid, dark background color */
-}
