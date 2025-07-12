@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -37,7 +36,7 @@ const TestControls: React.FC<TestControlsProps> = ({ onTestGenerate, onResetIp, 
             disabled={isGenerating || isResetting || isRefreshing}
             className="px-4 py-2 bg-purple-600 text-white font-bold rounded-md transition-colors hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
-            {isRefreshing ? 'RENEWING...' : 'Renew IP Status'}
+            {isRefreshing ? 'REFRESHING...' : 'Refresh IP Status'}
           </button>
           <button
             onClick={onResetIp}
