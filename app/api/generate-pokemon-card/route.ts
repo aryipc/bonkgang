@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { GoogleGenAI } from "@google/genai";
 import { type NextRequest } from "next/server";
@@ -311,3 +312,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+=======
+export {};
+>>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d

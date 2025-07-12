@@ -11,6 +11,7 @@ import StatsDisplay from '@/components/StatsDisplay';
 import FooterLinks from '@/components/FooterLinks';
 import InfoModal from '@/components/InfoModal';
 import Loader from '@/components/Loader';
+import TestControls from '@/components/TestControls';
 
 export default function Home() {
   const [inputImage, setInputImage] = useState<File | null>(null);
@@ -27,6 +28,11 @@ export default function Home() {
   const [ipStatus, setIpStatus] = useState<IpStatus | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
   const [isGenerationAttempted, setIsGenerationAttempted] = useState(false);
+
+  // State for Test Controls
+  const [isResettingIp, setIsResettingIp] = useState<boolean>(false);
+  const [testFeedback, setTestFeedback] = useState<string | null>(null);
+  const [showTests, setShowTests] = useState<boolean>(false);
 
   const initializeApp = useCallback(async () => {
     setIsInitializing(true);
@@ -66,12 +72,18 @@ export default function Home() {
 
   useEffect(() => {
     initializeApp();
+    // Check for test mode query parameter on client side
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('show_tests') === 'true') {
+      setShowTests(true);
+    }
   }, [initializeApp]);
 
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);
     setGenerationResult(null);
     setGenerateError(null);
+    setTestFeedback(null);
     if ((ipStatus?.totalSubmissions ?? 0) < 2) {
       setIsGenerationAttempted(false);
     }
@@ -90,34 +102,39 @@ export default function Home() {
     }
   };
   
-  const runGeneration = useCallback(async (style: string) => {
+  const runGeneration = useCallback(async (style: string, weaponId?: string, isTest: boolean = false) => {
     if (!inputImage) {
-      setGenerateError("Please upload an image first.");
+      const msg = "Please upload an image first.";
+      setGenerateError(msg);
+      if (isTest) setTestFeedback(`Failed: ${msg}`);
       return;
     }
 
     setIsOutputVisible(true);
     setIsGenerating(true);
     setGenerateError(null);
+    setTestFeedback(null);
     setGenerationResult(null);
-    setIsGenerationAttempted(true);
+    if (!isTest) setIsGenerationAttempted(true);
 
     try {
       const analysisResult = await analyzeImage(inputImage);
-      const result = await generateBonkImage(analysisResult.description, style, analysisResult.itemCount);
+      const result = await generateBonkImage(analysisResult.description, style, analysisResult.itemCount, weaponId);
       
       setGenerationResult(result);
       
-      // Only update stats if they are returned (i.e., not a test run)
-      if (result.newStats && result.newIpStatus) {
+      if (!isTest && result.newStats && result.newIpStatus) {
         setStats(result.newStats);
         setIpStatus(result.newIpStatus);
       }
+      if(isTest) setTestFeedback('Test generation successful!');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       console.error(err);
-      setGenerateError(`Failed to generate image. ${errorMessage}`);
+      const finalMessage = `Failed to generate image. ${errorMessage}`;
+      setGenerateError(finalMessage);
+      if (isTest) setTestFeedback(`Failed: ${errorMessage}`);
     } finally {
       setIsGenerating(false);
     }
@@ -135,6 +152,29 @@ export default function Home() {
     runGeneration(selectedStyle);
   }, [selectedStyle, ipStatus, runGeneration]);
 
+  const handleTestGenerate = useCallback(() => {
+    runGeneration('og_bonkgang', 'balloon_bat', true);
+  }, [runGeneration]);
+
+  const handleResetIp = useCallback(async () => {
+    setIsResettingIp(true);
+    setTestFeedback(null);
+    try {
+      const response = await fetch('/api/reset-ip', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to reset IP.');
+      }
+      setTestFeedback(data.message);
+      // Refresh user status from server
+      await initializeApp();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setTestFeedback(`Failed to reset IP: ${message}`);
+    } finally {
+      setIsResettingIp(false);
+    }
+  }, [initializeApp]);
 
   // Dedicated loading UI for initialization phase
   if (isInitializing && !initError) {
@@ -201,6 +241,18 @@ export default function Home() {
               )}
             </main>
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
+            
+            {/* Show test controls in dev or if query param is set */}
+            {(process.env.NODE_ENV === 'development' || showTests) && (
+              <TestControls
+                onTestGenerate={handleTestGenerate}
+                onResetIp={handleResetIp}
+                isGenerating={isGenerating}
+                isResetting={isResettingIp}
+                feedback={testFeedback}
+                hasImage={!!inputImage}
+              />
+            )}
           </>
         )}
         

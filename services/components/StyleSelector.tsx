@@ -1,0 +1,66 @@
+"use client";
+
+import React from 'react';
+
+const gangs = [
+    { 
+        id: 'og_bonkgang', 
+        name: 'OG bonkgang', 
+        description: 'The original crew. Masters of the bat, they keep it classic and chaotic. Fun, expressive, and always ready for a bonk.' 
+    },
+    { 
+        id: 'hung_hing', 
+        name: 'Hung Hing', 
+        description: 'From the gritty streets of Hong Kong. These triad-inspired warriors are masters of the cleaver, defined by intense ink work and dramatic shadows.' 
+    },
+    { 
+        id: 'street_gang', 
+        name: 'Street Gang', 
+        description: 'Straight from the American block. Bold, gritty, and armed to the teeth. They live by the code of the streets, inspired by 90s comic book action.' 
+    },
+];
+
+interface StyleSelectorProps {
+    selectedStyle: string;
+    setSelectedStyle: (style: string) => void;
+}
+
+const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, setSelectedStyle }) => {
+    const selectedGang = gangs.find(g => g.id === selectedStyle);
+    
+    return (
+        <div className="w-full p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg flex flex-col gap-4 h-full">
+            <div className="w-full flex flex-col items-center gap-3" role="radiogroup" aria-labelledby="gang-label">
+                <h2 id="gang-label" className="text-xl text-center text-amber-400 uppercase">1. CHOOSE YOUR STYLE</h2>
+                <div className="grid grid-cols-3 gap-4 w-full">
+                    {gangs.map(gang => (
+                        <button
+                            key={gang.id}
+                            role="radio"
+                            aria-checked={selectedStyle === gang.id}
+                            onClick={() => setSelectedStyle(gang.id)}
+                            className={`p-3 text-sm rounded-md border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-amber-400 ${
+                                selectedStyle === gang.id 
+                                    ? 'bg-amber-400 border-black text-black font-bold shadow-[4px_4px_0px_#000] active:translate-y-1 active:translate-x-1 active:shadow-none'
+                                    : 'bg-zinc-800 border-zinc-700 text-gray-300 hover:bg-zinc-700 hover:border-zinc-600 active:scale-95'
+                            }`}
+                        >
+                            {gang.name}
+                        </button>
+                    ))}
+                </div>
+                {selectedGang && (
+                    <div
+                        key={selectedGang.id} // Re-triggers animation on change
+                        className="mt-4 w-full p-4 bg-zinc-950 border border-amber-400/30 rounded-lg text-center animate-fadeInUp"
+                        aria-live="polite" // Announce changes to screen readers
+                    >
+                        <p className="text-sm text-gray-300 leading-relaxed">{selectedGang.description}</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default StyleSelector;
