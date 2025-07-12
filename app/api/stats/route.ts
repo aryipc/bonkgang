@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 import { NextResponse } from 'next/server';
 import { readStats } from '@/app/api/lib/db';
@@ -24,6 +23,3 @@ export async function GET() {
         );
     }
 }
-=======
-export {};
->>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d

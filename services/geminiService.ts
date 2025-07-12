@@ -1,6 +1,4 @@
 
-import { generateBonkImage as originalGenerate, analyzeImage as originalAnalyze } from './geminiService';
-
 
 export interface StyleStats {
   og_bonkgang: number;
@@ -62,9 +60,12 @@ export async function analyzeImage(imageFile: File): Promise<ImageAnalysisResult
   }
 }
 
-export async function generateBonkImage(prompt: string, style: string, itemCount: number): Promise<ImageGenerationResult> {
+export async function generateBonkImage(prompt: string, style: string, itemCount: number, weaponId?: string): Promise<ImageGenerationResult> {
   try {
-    const payload = { prompt, style, itemCount };
+    const payload: { prompt: string; style: string; itemCount: number; weaponId?: string } = { prompt, style, itemCount };
+    if (weaponId) {
+        payload.weaponId = weaponId;
+    }
 
     const response = await fetch('/api/generate-pokemon-card', {
       method: 'POST',

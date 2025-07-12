@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 "use client";
 
@@ -104,6 +103,3 @@ const PromptInput: React.FC<PromptInputProps> = ({ onGenerate, isLoading, error,
 };
 
 export default PromptInput;
-=======
-export {};
->>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d

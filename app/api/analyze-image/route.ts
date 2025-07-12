@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -136,6 +135,3 @@ Your entire response must be a single, valid JSON object matching this structure
     );
   }
 }
-=======
-export {};
->>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d

@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
   "name": "LetsBonkGang Official Register",
   "description": "Register your official gang member for LetsBonkGang. Upload an image, select your gang, and immortalize your character.",
-=======
-  "name": "LetsBonkGang Official prompt page",
-  "description": "Upload an image and select a style to generate a high-quality prompt for AI image models.",
->>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d
   "requestFramePermissions": [],
   "prompt": ""
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { kv } from '@vercel/kv';
 
 // --- Type Definitions ---
@@ -47,6 +46,3 @@ export async function readIpUsage(): Promise<IpUsageData> {
 export async function writeIpUsage(data: IpUsageData): Promise<void> {
     await kv.set(IP_USAGE_KEY, data);
 }
-=======
-export {};
->>>>>>> e2f6cc657ea60c98d5df23db2a89353c6dd5b44d
