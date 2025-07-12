@@ -16,7 +16,7 @@ const findWeaponById = (weapons: { [key: string]: any[] }, weaponId: string) => 
 
 
 function getArtworkPrompt(style: string, characterDescription: string, itemCount: number, weaponId?: string): string {
-    const baseEnding = `Its appearance, clothing, accessories, personality, and background should be directly inspired by this detailed description: "${characterDescription}".
+    const baseEnding = `Its appearance, clothing, accessories, and personality should be directly inspired by this detailed description: "${characterDescription}".
 If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
 CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
 
@@ -73,7 +73,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
                 weight: 20
             },
             { 
-                id: 'dragon_staff',
+                id: 'dragon_staff', 
                 value: {
                     single: "a short, heavy truncheon or baton, intricately carved to look like a Chinese dragon. The head of the dragon forms the tip of the weapon, and its tail is the handle. The weapon MUST BE short, about the length of a forearm, and held in one hand like a club.",
                     plural: "two short, heavy truncheons or batons, intricately carved to look like Chinese dragons. The head of each dragon forms the tip of the weapon, and its tail is the handle. The weapons MUST BE short, about the length of a forearm, and held one in each hand like clubs." 
@@ -169,42 +169,56 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
         }
     }
 
+    // --- BACKGROUND LOGIC ---
+    let backgroundInstruction = '';
+    switch (style) {
+        case 'hung_hing':
+            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Hung Hing' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a grimy, chaotic Hong Kong street scene. Apply glowing neon signs with Chinese characters to the surfaces of existing objects. The overall atmosphere should be dark, with wet, reflective surfaces capturing the vibrant neon glow.`;
+            break;
+        case 'street_gang':
+            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Street Gang' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a 90s comic book. Apply vibrant, stylized graffiti art to the surfaces of existing objects. Introduce elements of urban decay, like a chain-link fence or overflowing dumpster, where appropriate. The overall atmosphere should have high-contrast, panel-like lighting and gritty textures.`;
+            break;
+        case 'og_bonkgang':
+        default:
+            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'OG BonkGang' style. Preserve the core elements of the original setting, but render them in a fun, modern Western cartoon style. Simplify the original objects and shapes, use a palette of bright and appealing colors, and give the entire scene a vibrant, slightly abstract, and playful mood.`;
+            break;
+    }
+
+
+    const baseCharacterPrompt = `Create an anthropomorphic dog character. Its appearance, clothing, accessories, and personality should be directly inspired by this detailed description: "${characterDescription}".
+Full body shot, dynamic action pose.
+If the description mentions specific text on clothing, you MUST attempt to render that text clearly on the character's attire.
+CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
 
     switch (style) {
         case 'hung_hing':
             return `Masterpiece, in the high-contrast, dynamic ink wash style of a gritty Hong Kong martial arts comic (港漫).
 The artwork MUST feature heavy, expressive black ink work, dramatic chiaroscuro lighting, and a raw, edgy aesthetic.
-Create an anthropomorphic dog character.
+${baseCharacterPrompt}
 ${weaponInstruction}
 ${tattooInstruction}
-Background: A chaotic, grimy Hong Kong street scene at night, possibly in the rain.
-Full body shot, dynamic action pose.
-${baseEnding}`;
+${backgroundInstruction}`;
         case 'street_gang':
             return `Masterpiece, in the distinct style of classic 90s American comic book art (美漫风).
 The artwork MUST feature bold, clean black outlines, a palette of flat colors with minimal gradients (cel-shading), and a high-energy composition.
-Create an anthropomorphic dog character.
+${baseCharacterPrompt}
 ${weaponInstruction}
 ${tattooInstruction}
 ${accessoryInstruction}
-Background: A gritty, urban alleyway with graffiti and urban decay.
-Full body shot, dynamic action pose.
-${baseEnding}`;
+${backgroundInstruction}`;
         case 'og_bonkgang':
         default:
             return `Masterpiece, in a vibrant and modern Western cartoon style, reminiscent of popular animated TV shows.
 The artwork MUST be fun and expressive, with clean lines, bright appealing colors, and a slightly mischievous attitude.
-Create an anthropomorphic dog character in the 'Bonk Gang' style.
+${baseCharacterPrompt}
 ${weaponInstruction}
-Background: A simple, colorful, slightly abstract background that doesn't distract from the character.
-Full body shot.
-${baseEnding}`;
+${backgroundInstruction}`;
     }
 }
 
 
 export async function POST(request: NextRequest) {
-  const ip = request.ip ?? '127.0.0.1';
+  const ip = (request.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim();
   const isTestRun = (new URL(request.url).searchParams.get('test') === 'true');
 
   let body;

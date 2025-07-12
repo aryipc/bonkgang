@@ -12,7 +12,7 @@ const defaultUsage: IpUsage = {
 export async function GET(request: NextRequest) {
     // It's crucial to get the IP address correctly, especially when deployed.
     // `request.ip` is the recommended way in Next.js and Vercel.
-    const ip = request.ip ?? '127.0.0.1';
+    const ip = (request.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim();
 
     try {
         const ipUsageData = await readIpUsage();

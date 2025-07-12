@@ -5,7 +5,7 @@ import { readIpUsage, writeIpUsage, type IpUsageData } from '@/app/api/lib/db';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-    const ip = request.ip ?? '127.0.0.1';
+    const ip = (request.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim();
 
     if (!ip) {
         return NextResponse.json({ message: "Could not determine IP address." }, { status: 400, headers: { 'Content-Type': 'application/json' } });
