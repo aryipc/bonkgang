@@ -33,7 +33,7 @@ export default function Home() {
   const [isResettingIp, setIsResettingIp] = useState<boolean>(false);
   const [isRefreshingIp, setIsRefreshingIp] = useState<boolean>(false);
   const [testFeedback, setTestFeedback] = useState<string | null>(null);
-  const [showTests, setShowTests] = useState<boolean>(true);
+  const [showTests, setShowTests] = useState<boolean>(false);
   const [headerClicks, setHeaderClicks] = useState(0);
 
   const initializeApp = useCallback(async () => {
