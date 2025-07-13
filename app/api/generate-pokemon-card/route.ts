@@ -173,7 +173,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
     let backgroundInstruction = '';
     switch (style) {
         case 'hung_hing':
-            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Hung Hing' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a grimy, chaotic Hong Kong street scene. Apply glowing neon signs with Chinese characters to the surfaces of existing objects. The overall atmosphere should be dark, with wet, reflective surfaces capturing the vibrant neon glow.`;
+            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Hung Hing' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a grimy, chaotic Hong Kong street scene. Apply glowing neon signs with stylized text to the surfaces of existing objects. The overall atmosphere should be dark, with wet, reflective surfaces capturing the vibrant neon glow.`;
             break;
         case 'street_gang':
             backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Street Gang' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a 90s comic book. Apply vibrant, stylized graffiti art to the surfaces of existing objects. Introduce elements of urban decay, like a chain-link fence or overflowing dumpster, where appropriate. The overall atmosphere should have high-contrast, panel-like lighting and gritty textures.`;
