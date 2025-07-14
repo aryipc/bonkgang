@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -39,8 +40,8 @@ export default function Home() {
     setInitError(null);
     try {
       const [statsResponse, ipStatusResponse] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/ip-status')
+        fetch('/api/stats', { cache: 'no-store' }),
+        fetch('/api/ip-status', { cache: 'no-store' })
       ]);
 
       if (!statsResponse.ok) {
@@ -74,7 +75,7 @@ export default function Home() {
     initializeApp();
     // Check for test mode query parameter on client side
     const params = new URLSearchParams(window.location.search);
-    if (params.get('show_tests') === 'true') {
+    if (process.env.NODE_ENV === 'development' || params.get('show_tests') === 'true') {
       setShowTests(true);
     }
   }, [initializeApp]);
@@ -160,7 +161,7 @@ export default function Home() {
     setIsRefreshingIp(true);
     setTestFeedback(null);
     try {
-      const response = await fetch('/api/ip-status');
+      const response = await fetch('/api/ip-status', { cache: 'no-store' });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || 'Failed to renew IP status.');
@@ -264,7 +265,7 @@ export default function Home() {
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
             
             {/* Show test controls in dev or if query param is set */}
-            {(process.env.NODE_ENV === 'development' || showTests) && (
+            {showTests && (
               <TestControls
                 onTestGenerate={handleTestGenerate}
                 onResetIp={handleResetIp}
