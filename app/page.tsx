@@ -33,8 +33,6 @@ export default function Home() {
   const [isResettingIp, setIsResettingIp] = useState<boolean>(false);
   const [isRefreshingIp, setIsRefreshingIp] = useState<boolean>(false);
   const [testFeedback, setTestFeedback] = useState<string | null>(null);
-  const [showTests, setShowTests] = useState<boolean>(false);
-  const [headerClicks, setHeaderClicks] = useState(0);
 
   const initializeApp = useCallback(async () => {
     setIsInitializing(true);
@@ -73,30 +71,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (headerClicks > 0) {
-      const timer = setTimeout(() => setHeaderClicks(0), 2000); // Reset after 2 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [headerClicks]);
-
-  useEffect(() => {
     initializeApp();
-    // Check for test mode query parameter on client side
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('show_tests') === 'true') {
-      setShowTests(true);
-    }
   }, [initializeApp]);
-
-  const handleHeaderClick = () => {
-    const newClickCount = headerClicks + 1;
-    if (newClickCount >= 7) {
-        setShowTests(prev => !prev);
-        setHeaderClicks(0);
-    } else {
-        setHeaderClicks(newClickCount);
-    }
-  };
 
   const handleSetInputImage = (file: File | null) => {
     setInputImage(file);
@@ -231,7 +207,7 @@ export default function Home() {
         message="You can join a maximum of two gangs. You cannot rejoin a gang you have already joined."
       />
       <div className="w-full max-w-6xl flex flex-col items-center">
-        <div onClick={handleHeaderClick} className="w-full cursor-help" title="Click 7 times to toggle dev tools">
+        <div className="w-full">
             <Header />
         </div>
 
@@ -282,19 +258,16 @@ export default function Home() {
             </main>
             <StatsDisplay stats={stats} isLoading={isGenerating || isInitializing} />
             
-            {/* Show test controls in dev or if query param is set */}
-            {(process.env.NODE_ENV === 'development' || showTests) && (
-              <TestControls
-                onTestGenerate={handleTestGenerate}
-                onResetIp={handleResetIp}
-                onRefreshIp={handleRefreshIp}
-                isGenerating={isGenerating}
-                isResetting={isResettingIp}
-                isRefreshing={isRefreshingIp}
-                feedback={testFeedback}
-                hasImage={!!inputImage}
-              />
-            )}
+            <TestControls
+              onTestGenerate={handleTestGenerate}
+              onResetIp={handleResetIp}
+              onRefreshIp={handleRefreshIp}
+              isGenerating={isGenerating}
+              isResetting={isResettingIp}
+              isRefreshing={isRefreshingIp}
+              feedback={testFeedback}
+              hasImage={!!inputImage}
+            />
           </>
         )}
         
