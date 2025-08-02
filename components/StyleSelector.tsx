@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 
 const gangs = [
     { 
@@ -25,36 +25,26 @@ interface StyleSelectorProps {
     onStyleSelect: (style: string) => void;
     isLoading: boolean;
     submittedGangs: string[];
+    onInfoClick: () => void;
 }
 
-const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSelect, isLoading, submittedGangs }) => {
+const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onStyleSelect, isLoading, submittedGangs, onInfoClick }) => {
     const selectedGang = gangs.find(g => g.id === selectedStyle);
-    const [isTooltipVisible, setIsTooltipVisible] = useState(false);
     
     return (
         <div className="w-full max-w-lg flex flex-col items-center gap-3 my-6" role="radiogroup" aria-labelledby="gang-label">
-            <div 
-                className="flex justify-center items-center gap-2 relative"
-                onMouseEnter={() => setIsTooltipVisible(true)}
-                onMouseLeave={() => setIsTooltipVisible(false)}
-            >
+            <div className="flex justify-center items-center gap-2">
                 <h2 id="gang-label" className="text-xl text-center text-amber-400">Choose a Gang</h2>
                 <button 
                     type="button"
                     className="text-gray-400 hover:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-full"
                     aria-label="Information on gang submission limits"
-                    onClick={() => setIsTooltipVisible(v => !v)}
+                    onClick={onInfoClick}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                 </button>
-                {isTooltipVisible && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs px-3 py-2 text-sm font-normal text-white bg-zinc-950 rounded-lg shadow-xl border border-amber-400/50 z-10" role="tooltip">
-                        You can join a maximum of two gangs.
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-zinc-950"></div>
-                    </div>
-                )}
             </div>
 
             <div className="grid grid-cols-3 gap-4 w-full">

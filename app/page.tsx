@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -91,16 +90,15 @@ export default function Home() {
   };
 
   const handleStyleSelect = (style: string) => {
-    const hasShownInfo = sessionStorage.getItem('hasShownGangInfo') === 'true';
-    if (!hasShownInfo) {
-      setIsInfoModalOpen(true);
-      sessionStorage.setItem('hasShownGangInfo', 'true');
-    }
     setSelectedStyle(style);
     setGenerateError(null);
     if ((ipStatus?.totalSubmissions ?? 0) < 2) {
       setIsGenerationAttempted(false);
     }
+  };
+
+  const handleInfoIconClick = () => {
+    setIsInfoModalOpen(true);
   };
   
   const runGeneration = useCallback(async (style: string, weaponId?: string, isTest: boolean = false) => {
@@ -238,6 +236,7 @@ export default function Home() {
               onStyleSelect={handleStyleSelect}
               isLoading={isGenerating}
               submittedGangs={ipStatus?.submittedGangs ?? []}
+              onInfoClick={handleInfoIconClick}
             />
             <main className="w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
               <div className={isOutputVisible ? 'w-full' : 'md:col-span-2 w-full flex justify-center'}>
