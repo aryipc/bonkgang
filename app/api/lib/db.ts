@@ -1,4 +1,3 @@
-
 // --- Type Definitions ---
 export type Stats = {
     [key: string]: number;
@@ -13,10 +12,18 @@ export type IpUsageData = {
     [ip: string]: IpUsage;
 };
 
+export interface GalleryEntry {
+    id: string;
+    imageUrl: string;
+    gang: string;
+    createdAt: string;
+}
+
 
 // --- DB Keys ---
 const STATS_KEY = 'bonk_gang_stats';
 const IP_USAGE_KEY = 'bonk_gang_ip_usage';
+const GALLERY_KEY = 'bonk_gang_gallery';
 
 
 // --- Default Data ---
@@ -136,4 +143,15 @@ export async function readIpUsage(): Promise<IpUsageData> {
 
 export async function writeIpUsage(data: IpUsageData): Promise<void> {
     await writeToKv(IP_USAGE_KEY, data);
+}
+
+// --- Gallery DB Functions ---
+
+export async function readGalleryEntries(): Promise<GalleryEntry[]> {
+    const entries = await readFromKv<GalleryEntry[]>(GALLERY_KEY);
+    return entries ?? [];
+}
+
+export async function writeGalleryEntries(entries: GalleryEntry[]): Promise<void> {
+    await writeToKv(GALLERY_KEY, entries);
 }
