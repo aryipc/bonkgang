@@ -30,11 +30,11 @@ const defaultIpUsageData: IpUsageData = {};
  * @returns The parsed data or null if not found or an error occurs.
  */
 async function readFromKv<T>(key: string): Promise<T | null> {
-    const url = process.env.KV2_REST_API_URL;
-    const token = process.env.KV2_REST_API_TOKEN;
+    const url = process.env.KV2_KV_REST_API_URL;
+    const token = process.env.KV2_KV_REST_API_TOKEN;
 
     if (!url || !token) {
-        const errorMsg = '@vercel/kv: Missing required environment variables KV2_REST_API_URL or KV2_REST_API_TOKEN.';
+        const errorMsg = '@vercel/kv: Missing required environment variables KV2_KV_REST_API_URL or KV2_KV_REST_API_TOKEN.';
         console.error(errorMsg);
         throw new Error(errorMsg);
     }
@@ -73,11 +73,11 @@ async function readFromKv<T>(key: string): Promise<T | null> {
  * @param value The value to write. It will be JSON.stringified.
  */
 async function writeToKv<T>(key: string, value: T): Promise<void> {
-    const url = process.env.KV2_REST_API_URL;
-    const token = process.env.KV2_REST_API_TOKEN;
+    const url = process.env.KV2_KV_REST_API_URL;
+    const token = process.env.KV2_KV_REST_API_TOKEN;
 
     if (!url || !token) {
-        const errorMsg = '@vercel/kv: Missing required environment variables KV2_REST_API_URL or KV2_REST_API_TOKEN.';
+        const errorMsg = '@vercel/kv: Missing required environment variables KV2_KV_REST_API_URL or KV2_KV_REST_API_TOKEN.';
         console.error(errorMsg);
         throw new Error(errorMsg);
     }
