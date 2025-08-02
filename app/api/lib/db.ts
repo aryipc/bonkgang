@@ -1,6 +1,3 @@
-
-import { kv } from '@vercel/kv';
-
 // --- Type Definitions ---
 export type Stats = {
     [key: string]: number;
@@ -33,11 +30,11 @@ const defaultIpUsageData: IpUsageData = {};
  * @returns The parsed data or null if not found or an error occurs.
  */
 async function readFromKv<T>(key: string): Promise<T | null> {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
+    const url = process.env.KV2_REST_API_URL;
+    const token = process.env.KV2_REST_API_TOKEN;
 
     if (!url || !token) {
-        const errorMsg = '@vercel/kv: Missing required environment variables KV_REST_API_URL or KV_REST_API_TOKEN.';
+        const errorMsg = '@vercel/kv: Missing required environment variables KV2_REST_API_URL or KV2_REST_API_TOKEN.';
         console.error(errorMsg);
         throw new Error(errorMsg);
     }
@@ -69,6 +66,51 @@ async function readFromKv<T>(key: string): Promise<T | null> {
     }
 }
 
+/**
+ * Writes a value to a key in Vercel KV using the REST API.
+ * This ensures consistency with the cache-bypassing read implementation.
+ * @param key The key to write to in Vercel KV.
+ * @param value The value to write. It will be JSON.stringified.
+ */
+async function writeToKv<T>(key: string, value: T): Promise<void> {
+    const url = process.env.KV2_REST_API_URL;
+    const token = process.env.KV2_REST_API_TOKEN;
+
+    if (!url || !token) {
+        const errorMsg = '@vercel/kv: Missing required environment variables KV2_REST_API_URL or KV2_REST_API_TOKEN.';
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+    }
+
+    try {
+        const response = await fetch(`${url}/set/${key}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(value),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Failed to write key "${key}" to Vercel KV REST API. Status: ${response.status}. Body: ${errorText}`);
+            throw new Error(`Failed to write key "${key}" to KV store.`);
+        }
+
+        const data = await response.json();
+        if (data.result !== 'OK') {
+            console.error(`KV REST API returned non-OK result for set operation on key "${key}":`, data.result);
+            throw new Error(`KV REST API returned an unexpected result for set operation.`);
+        }
+    } catch (error) {
+        console.error(`Error writing directly to KV REST API for key "${key}":`, error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(`An unknown error occurred while writing to key "${key}" in KV store.`);
+    }
+}
+
 
 // --- Stats DB Functions ---
 
@@ -79,8 +121,7 @@ export async function readStats(): Promise<Stats> {
 }
 
 export async function writeStats(stats: Stats): Promise<void> {
-    // Writes can continue to use the SDK, as they correctly invalidate the cache.
-    await kv.set(STATS_KEY, stats);
+    await writeToKv(STATS_KEY, stats);
 }
 
 
@@ -93,6 +134,5 @@ export async function readIpUsage(): Promise<IpUsageData> {
 }
 
 export async function writeIpUsage(data: IpUsageData): Promise<void> {
-    // Writes can continue to use the SDK.
-    await kv.set(IP_USAGE_KEY, data);
+    await writeToKv(IP_USAGE_KEY, data);
 }
