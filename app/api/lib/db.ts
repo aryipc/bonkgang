@@ -1,3 +1,4 @@
+
 // --- Type Definitions ---
 export type Stats = {
     [key: string]: number;
@@ -7,10 +8,6 @@ export interface IpUsage {
     totalSubmissions: number;
     submittedGangs: string[];
 }
-
-export type IpUsageData = {
-    [ip: string]: IpUsage;
-};
 
 export interface GalleryEntry {
     id: string;
@@ -22,22 +19,22 @@ export interface GalleryEntry {
 
 // --- DB Keys ---
 const STATS_KEY = 'bonk_gang_stats';
-const IP_USAGE_KEY = 'bonk_gang_ip_usage';
 const GALLERY_KEY = 'bonk_gang_gallery';
+const IP_KEY_PREFIX = 'ip:'; // Prefix for scalable IP keys
 
 
 // --- Default Data ---
 const defaultStats: Stats = { og_bonkgang: 0, ghz: 0, street_gang: 0 };
-const defaultIpUsageData: IpUsageData = {};
+
 
 /**
- * Bypasses the Vercel Data Cache by fetching directly from the KV REST API 
- * with a 'no-store' cache policy. This ensures reads are always fresh, which is
- * crucial when data is updated outside the application (e.g., in the Upstash console).
- * @param key The key to read from Vercel KV.
- * @returns The parsed data or null if not found or an error occurs.
+ * Executes a command against the Vercel KV REST API.
+ * This provides a flexible way to run various Redis commands.
+ * @param command The Redis command to execute (e.g., 'lpush', 'lrange').
+ * @param args The arguments for the command, including the key.
+ * @returns The parsed data from the 'result' field of the API response.
  */
-async function readFromKv<T>(key: string): Promise<T | null> {
+async function executeKvCommand<T>(command: string, ...args: (string | number)[]): Promise<T | null> {
     const url = process.env.KV2_KV_REST_API_URL;
     const token = process.env.KV2_KV_REST_API_TOKEN;
 
@@ -46,36 +43,54 @@ async function readFromKv<T>(key: string): Promise<T | null> {
         console.error(errorMsg);
         throw new Error(errorMsg);
     }
+    
+    // Construct the command URL like: https://<url>/lpush/mykey/myvalue
+    const commandUrl = [url, command, ...args.map(encodeURIComponent)].join('/');
 
     try {
-        const response = await fetch(`${url}/get/${key}`, {
+        const response = await fetch(commandUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
-            // This is the crucial part: it bypasses Vercel's default 30-second data cache.
             cache: 'no-store',
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch key "${key}" from Vercel KV REST API. Status: ${response.status}`);
+            console.error(`Failed to execute command "${command}" via Vercel KV REST API. Status: ${response.status}`);
             return null;
         }
 
         const data = await response.json();
-        // The KV REST API returns the value as a JSON-stringified string in the 'result' field.
-        if (data.result) {
-            return JSON.parse(data.result) as T;
-        }
-        return null;
+        return data.result as T;
 
     } catch (error) {
-        console.error(`Error fetching directly from KV REST API for key "${key}":`, error);
+        console.error(`Error executing command via KV REST API for command "${command}":`, error);
         return null;
     }
 }
 
+
 /**
- * Writes a value to a key in Vercel KV using the REST API.
+ * Bypasses the Vercel Data Cache by fetching directly from the KV REST API 
+ * with a 'no-store' cache policy. This is used for simple GET operations on single keys.
+ * @param key The key to read from Vercel KV.
+ * @returns The parsed data or null if not found or an error occurs.
+ */
+async function readFromKv<T>(key: string): Promise<T | null> {
+    const result = await executeKvCommand<string>('get', key);
+    if (result) {
+        try {
+            return JSON.parse(result) as T;
+        } catch(e) {
+            console.error(`Failed to parse JSON for key ${key}`, result);
+            return null;
+        }
+    }
+    return null;
+}
+
+/**
+ * Writes a value to a key in Vercel KV using the REST API (SET command).
  * This ensures consistency with the cache-bypassing read implementation.
  * @param key The key to write to in Vercel KV.
  * @param value The value to write. It will be JSON.stringified.
@@ -123,7 +138,6 @@ async function writeToKv<T>(key: string, value: T): Promise<void> {
 // --- Stats DB Functions ---
 
 export async function readStats(): Promise<Stats> {
-    // Replaced kv.get with our cache-bypassing implementation.
     const stats = await readFromKv<Stats>(STATS_KEY);
     return stats ?? defaultStats;
 }
@@ -133,25 +147,71 @@ export async function writeStats(stats: Stats): Promise<void> {
 }
 
 
-// --- IP Usage DB Functions ---
+// --- SCALABLE IP Usage DB Functions ---
 
-export async function readIpUsage(): Promise<IpUsageData> {
-    // Replaced kv.get with our cache-bypassing implementation.
-    const data = await readFromKv<IpUsageData>(IP_USAGE_KEY);
-    return data ?? defaultIpUsageData;
+/**
+ * Reads the usage data for a single, specific IP address.
+ * @param ip The IP address to look up.
+ * @returns The usage data for the IP, or null if not found.
+ */
+export async function readIpUsageForIp(ip: string): Promise<IpUsage | null> {
+    return await readFromKv<IpUsage>(`${IP_KEY_PREFIX}${ip}`);
 }
 
-export async function writeIpUsage(data: IpUsageData): Promise<void> {
-    await writeToKv(IP_USAGE_KEY, data);
+/**
+ * Writes the usage data for a single, specific IP address.
+ * @param ip The IP address to write data for.
+ * @param usage The usage data to save.
+ */
+export async function writeIpUsageForIp(ip: string, usage: IpUsage): Promise<void> {
+    await writeToKv(`${IP_KEY_PREFIX}${ip}`, usage);
 }
 
-// --- Gallery DB Functions ---
-
-export async function readGalleryEntries(): Promise<GalleryEntry[]> {
-    const entries = await readFromKv<GalleryEntry[]>(GALLERY_KEY);
-    return entries ?? [];
+/**
+ * Deletes the usage data for a single, specific IP address.
+ * @param ip The IP address to delete data for.
+ */
+export async function deleteIpUsageForIp(ip: string): Promise<void> {
+    await executeKvCommand('del', `${IP_KEY_PREFIX}${ip}`);
 }
 
-export async function writeGalleryEntries(entries: GalleryEntry[]): Promise<void> {
-    await writeToKv(GALLERY_KEY, entries);
+// --- SCALABLE Gallery DB Functions ---
+
+/**
+ * Adds a new gallery entry to the beginning of the list in KV.
+ * This is an efficient O(1) operation.
+ * @param entry The gallery entry object to add.
+ */
+export async function addGalleryEntry(entry: GalleryEntry): Promise<void> {
+    await executeKvCommand('lpush', GALLERY_KEY, JSON.stringify(entry));
+}
+
+/**
+ * Gets the total number of entries in the gallery list.
+ * This is an efficient O(1) operation.
+ * @returns The total number of entries.
+ */
+export async function getGalleryCount(): Promise<number> {
+    const count = await executeKvCommand<number>('llen', GALLERY_KEY);
+    return count ?? 0;
+}
+
+/**
+ * Reads a specific page of gallery entries from the list in KV.
+ * This is an efficient O(M) operation where M is the page size, not the total list size.
+ * @param page The page number to retrieve (1-based).
+ * @param limit The number of entries per page.
+ * @returns An array of gallery entries for the requested page.
+ */
+export async function readPaginatedGalleryEntries(page: number, limit: number): Promise<GalleryEntry[]> {
+    const start = (page - 1) * limit;
+    const stop = start + limit - 1;
+    const results = await executeKvCommand<string[]>('lrange', GALLERY_KEY, start, stop);
+    
+    if (!results) {
+        return [];
+    }
+    
+    // The results from KV are JSON strings, so they need to be parsed.
+    return results.map(item => JSON.parse(item));
 }

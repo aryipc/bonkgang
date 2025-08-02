@@ -1,7 +1,7 @@
-
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 
 interface StyleStats {
   og_bonkgang: number;
@@ -46,12 +46,16 @@ const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, isLoading }) => {
 
   return (
     <div className="w-full max-w-3xl mt-12">
-      <div className="p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg">
+       <Link
+        href="/roll-of-members"
+        className="block p-4 bg-zinc-900 border-2 border-amber-400 rounded-lg transition-all duration-300 ease-in-out hover:border-amber-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-400/10 cursor-pointer"
+        aria-label="View the Roll of Members gallery"
+      >
         <h2 className="text-xl text-center text-amber-400 mb-4">
           Member Stats
         </h2>
         {renderContent()}
-      </div>
+      </Link>
     </div>
   );
 };

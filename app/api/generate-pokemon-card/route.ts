@@ -5,11 +5,10 @@ import { put } from '@vercel/blob';
 import { 
     readStats, 
     writeStats, 
-    readIpUsage, 
-    writeIpUsage, 
+    readIpUsageForIp,
+    writeIpUsageForIp,
     type IpUsage,
-    readGalleryEntries,
-    writeGalleryEntries,
+    addGalleryEntry,
     type GalleryEntry
 } from "@/app/api/lib/db";
 
@@ -249,13 +248,13 @@ export async function POST(request: NextRequest) {
 
   // --- IP Rate Limiting & DB Reads (skipped for test runs) ---
   if (!isTestRun) {
-    let ipUsageData;
-    let userUsage: IpUsage = { totalSubmissions: 0, submittedGangs: [] };
+    let userUsage: IpUsage;
 
     try {
-        ipUsageData = await readIpUsage();
+        const usage = await readIpUsageForIp(ip);
+        userUsage = usage || { totalSubmissions: 0, submittedGangs: [] };
     } catch (dbError) {
-        console.error("Failed to read IP usage DB:", dbError);
+        console.error(`Failed to read IP usage for IP ${ip}:`, dbError);
         let message = "Service is temporarily unavailable due to a database error.";
         if (dbError instanceof Error && dbError.message.includes('@vercel/kv: Missing required environment variable')) {
             message = "Configuration Error: The application is missing required Vercel KV database environment variables. Please check your project's deployment settings.";
@@ -265,8 +264,6 @@ export async function POST(request: NextRequest) {
             { status: 503, headers: { 'Content-Type': 'application/json' } }
         );
     }
-
-    userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
 
     if (userUsage.totalSubmissions >= 2) {
         return new Response(
@@ -334,16 +331,14 @@ export async function POST(request: NextRequest) {
             
             artworkUrl = blob.url; // Use the permanent public URL
 
-            // Save metadata to the gallery list in KV
+            // Save metadata to the gallery list in KV using the new efficient method
             const newGalleryEntry: GalleryEntry = {
                 id: uniqueId,
                 imageUrl: blob.url,
                 gang: style,
                 createdAt: new Date().toISOString(),
             };
-            const galleryEntries = await readGalleryEntries();
-            galleryEntries.unshift(newGalleryEntry); // Add to the beginning of the list
-            await writeGalleryEntries(galleryEntries);
+            await addGalleryEntry(newGalleryEntry);
         }
     }
     // --- End Gallery Saving Logic ---
@@ -355,19 +350,18 @@ export async function POST(request: NextRequest) {
         stats[style] = (stats[style] || 0) + 1;
         await writeStats(stats);
         
-        const ipUsageData = await readIpUsage();
-        let userUsage = ipUsageData[ip] || { totalSubmissions: 0, submittedGangs: [] };
-        userUsage.totalSubmissions += 1;
-        if (!userUsage.submittedGangs.includes(style)) {
-            userUsage.submittedGangs.push(style);
+        // Scalable IP Usage Update
+        const currentUserUsage = (await readIpUsageForIp(ip)) || { totalSubmissions: 0, submittedGangs: [] };
+        currentUserUsage.totalSubmissions += 1;
+        if (!currentUserUsage.submittedGangs.includes(style)) {
+            currentUserUsage.submittedGangs.push(style);
         }
-        ipUsageData![ip] = userUsage;
-        await writeIpUsage(ipUsageData!);
+        await writeIpUsageForIp(ip, currentUserUsage);
         
         return new Response(JSON.stringify({ 
             artworkUrl,
             newStats: stats,
-            newIpStatus: userUsage
+            newIpStatus: currentUserUsage
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }

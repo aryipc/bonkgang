@@ -1,6 +1,6 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { readGalleryEntries } from '@/app/api/lib/db';
+import { getGalleryCount, readPaginatedGalleryEntries } from '@/app/api/lib/db';
 
 export const dynamic = 'force-dynamic'; // Ensures the route is always executed dynamically.
 
@@ -14,12 +14,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ message: "Invalid page or limit parameter." }, { status: 400 });
         }
 
-        const allEntries = await readGalleryEntries();
-        const totalEntries = allEntries.length;
+        // Fetch paginated entries and total count efficiently
+        const [paginatedEntries, totalEntries] = await Promise.all([
+            readPaginatedGalleryEntries(page, limit),
+            getGalleryCount()
+        ]);
+        
         const totalPages = Math.ceil(totalEntries / limit);
-
-        const startIndex = (page - 1) * limit;
-        const paginatedEntries = allEntries.slice(startIndex, startIndex + limit);
 
         return NextResponse.json({
             entries: paginatedEntries,

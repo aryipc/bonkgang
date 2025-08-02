@@ -1,6 +1,6 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { readIpUsage, writeIpUsage, type IpUsageData } from '@/app/api/lib/db';
+import { readIpUsageForIp, deleteIpUsageForIp } from '@/app/api/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const ipUsageData: IpUsageData = await readIpUsage();
+        // Check if the user exists before deleting
+        const currentUser = await readIpUsageForIp(ip);
         
-        if (ipUsageData[ip]) {
-            delete ipUsageData[ip];
-            await writeIpUsage(ipUsageData);
+        if (currentUser) {
+            await deleteIpUsageForIp(ip);
             return NextResponse.json({ message: `IP usage for ${ip} has been reset.` });
         } else {
-            return NextResponse.json({ message: `No usage data found for IP ${ip}.` });
+            return NextResponse.json({ message: `No usage data found for IP ${ip}. Nothing to reset.` });
         }
 
     } catch (error) {
