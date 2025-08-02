@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -9,8 +10,8 @@ const gangs = [
         description: 'The original crew. Masters of the bat, they keep it classic and chaotic. Fun, expressive, and always ready for a bonk.' 
     },
     { 
-        id: 'hung_hing', 
-        name: 'Hung Hing', 
+        id: 'ghz', 
+        name: 'GHZ', 
         description: "Hong Kong's ruthless streets breed these cleaver-wielding gangsters, draped in dragon tattoos and chaos. They are commonly called 古惑仔" 
     },
     { 

@@ -1,8 +1,9 @@
 
 
+
 export interface StyleStats {
   og_bonkgang: number;
-  hung_hing: number;
+  ghz: number;
   street_gang: number;
 }
 

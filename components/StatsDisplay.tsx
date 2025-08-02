@@ -5,7 +5,7 @@ import React from 'react';
 
 interface StyleStats {
   og_bonkgang: number;
-  hung_hing: number;
+  ghz: number;
   street_gang: number;
 }
 
@@ -16,7 +16,7 @@ interface StatsDisplayProps {
 
 const styleNames: { [key: string]: string } = {
   og_bonkgang: 'OG BonkGang',
-  hung_hing: 'Hung Hing',
+  ghz: 'GHZ',
   street_gang: 'Street Gang',
 };
 

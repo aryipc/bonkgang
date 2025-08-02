@@ -46,7 +46,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
     type WeightedWeaponList = WeaponDefinition[];
 
     const weapons: { [key: string]: WeightedWeaponList } = {
-        hung_hing: [
+        ghz: [
             { id: 'cleaver', value: { single: "a Chinese cleaver (西瓜刀)", plural: "Chinese cleavers (西瓜刀)" }, weight: 30 },
             {
                 id: 'pipe',
@@ -139,7 +139,7 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
         return `The character has a prominent tattoo of ${selectedTattoo} directly on the skin of their neck or elbow.`;
     };
 
-    if (style === 'hung_hing') {
+    if (style === 'ghz') {
         const tattooType = Math.random() < 0.5 ? "a classic Chinese dragon tattoo" : "a fierce tiger tattoo";
         tattooInstruction = `The character has ${tattooType} tattooed directly onto their skin on their chest or arms. The tattoo should be partially visible, peeking out from under their clothing, not printed on it.`;
     }
@@ -172,8 +172,8 @@ CRITICAL: The final image should not have any watermarks, borders, or logos that
     // --- BACKGROUND LOGIC ---
     let backgroundInstruction = '';
     switch (style) {
-        case 'hung_hing':
-            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Hung Hing' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a grimy, chaotic Hong Kong street scene. Apply glowing neon signs with stylized text to the surfaces of existing objects. The overall atmosphere should be dark, with wet, reflective surfaces capturing the vibrant neon glow.`;
+        case 'ghz':
+            backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'GHZ' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a grimy, chaotic Hong Kong street scene. Apply glowing neon signs with stylized text to the surfaces of existing objects. The overall atmosphere should be dark, with wet, reflective surfaces capturing the vibrant neon glow.`;
             break;
         case 'street_gang':
             backgroundInstruction = `Background Transformation: Re-imagine the original background scene in the 'Street Gang' style. Preserve the core shapes and layout of the original setting, but infuse it with the aesthetic of a 90s comic book. Apply vibrant, stylized graffiti art to the surfaces of existing objects. Introduce elements of urban decay, like a chain-link fence or overflowing dumpster, where appropriate. The overall atmosphere should have high-contrast, panel-like lighting and gritty textures.`;
@@ -191,7 +191,7 @@ If the description mentions specific text on clothing, you MUST attempt to rende
 CRITICAL: The final image should not have any watermarks, borders, or logos that are not part of the described scene or clothing.`;
 
     switch (style) {
-        case 'hung_hing':
+        case 'ghz':
             return `Masterpiece, in the high-contrast, dynamic ink wash style of a gritty Hong Kong martial arts comic (港漫).
 The artwork MUST feature heavy, expressive black ink work, dramatic chiaroscuro lighting, and a raw, edgy aesthetic.
 ${baseCharacterPrompt}

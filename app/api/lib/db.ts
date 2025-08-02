@@ -1,3 +1,4 @@
+
 // --- Type Definitions ---
 export type Stats = {
     [key: string]: number;
@@ -19,7 +20,7 @@ const IP_USAGE_KEY = 'bonk_gang_ip_usage';
 
 
 // --- Default Data ---
-const defaultStats: Stats = { og_bonkgang: 0, hung_hing: 0, street_gang: 0 };
+const defaultStats: Stats = { og_bonkgang: 0, ghz: 0, street_gang: 0 };
 const defaultIpUsageData: IpUsageData = {};
 
 /**
